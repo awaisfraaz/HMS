@@ -4,16 +4,7 @@ const HospitalSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    password: {
-        type: String,
-        required: true,
-    },
-    id: {
+    hospitalcode: {
         type: String,
         required: true,
         unique: true,
@@ -25,19 +16,11 @@ const HospitalSchema = new mongoose.Schema({
     city: {
         type: String,
         required: true,
-    },
-    state: {
-        type: String,
-        required: true,
-    },
-    zip: {
-        type: String,
-        required: true,
-    },
-    owner: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-    },
+    }
+    // owner: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "User",
+    // },
 
 
 }, { timestamps: true })
