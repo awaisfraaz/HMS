@@ -16,11 +16,13 @@ const HospitalSchema = new mongoose.Schema({
     city: {
         type: String,
         required: true,
-    }
-    // owner: {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: "User",
-    // },
+    },
+    subscriptiontier: {
+        type: String,
+        enum: ["Basic", "Pro", "Enterprise"],
+        default: "Basic",
+        required: true,
+    },
 
 
 }, { timestamps: true })
