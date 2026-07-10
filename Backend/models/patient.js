@@ -1,6 +1,6 @@
-import moongose from 'mongoose'
+const mongoose = require('mongoose')
 
-const patientschema = new moongose.Schema({
+const patientschema = new mongoose.Schema({
 
 
     patientid: {

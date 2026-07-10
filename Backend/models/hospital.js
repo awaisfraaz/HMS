@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose')
 const HospitalSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -27,4 +27,4 @@ const HospitalSchema = new mongoose.Schema({
 
 }, { timestamps: true })
 const Hospital = mongoose.model("Hospital", HospitalSchema);
-export default Hospital;  
+module.exports = Hospital;  

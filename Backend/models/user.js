@@ -1,7 +1,7 @@
-import moongose from 'mongoose'
-import bcrypt from 'bcrypt'
+const mongoose = require('mongoose')
+const bcrypt = require('bcrypt')
 
-const Userschema = new moongose.Schema({
+const Userschema = new mongoose.Schema({
 
 
     userid: {
