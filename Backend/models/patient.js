@@ -30,11 +30,10 @@ const patientschema = new mongoose.Schema({
     },
 
     hospital_id: {
-        type: moongose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Hospital"
-
     },
 
 })
-const Patient = moongose.model("Patient", patientschema);
-export default Patient;
+const Patient = mongoose.model("Patient", patientschema);
+module.exports = Patient;

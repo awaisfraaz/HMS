@@ -1,14 +1,11 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
-
+const jwt = require('jsonwebtoken')
+const dotenv = require('dotenv')
+dotenv.config()
 const Userschema = new mongoose.Schema({
 
 
-    userid: {
-        type: String,
-        required: true,
-        unique: true,
-    },
     name: {
         type: String,
         required: true,
@@ -25,11 +22,21 @@ const Userschema = new mongoose.Schema({
     role: {
         type: String,
         required: true,
+        enum: ["Super Admin", "Hospital Admin", "Doctor", "Receptionist"]
     },
     hospital_id: {
-        type: moongose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Hospital"
-
+    },
+    status: {
+        type: String,
+        default: "Pending",
+        enum: ["Pending", "Approved", "Rejected"]
+    },
+    // Refresh Token  in db long live 
+    refreshToken: {
+        type: String,
+        required: false,
     },
 
 }, { timestamps: true })
@@ -40,7 +47,7 @@ Userschema.pre("save", async function (next) {
     this.password = await bcrypt.hash(this.password, 10);
     next();
 })
-Userschema.methods.comparePassword = async function (password) {
+Userschema.methods.isPasswordValid = async function (password) {
     return await bcrypt.compare(password, this.password);
 }
 Userschema.methods.generateaccessToken = function () {
@@ -48,11 +55,10 @@ Userschema.methods.generateaccessToken = function () {
         {
             id: this._id,
             email: this.email,
-            role: this.role,
-            hospital_id: this.hospital_id,
+            role: this.role
         },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+        { expiresIn: /** @type {any} */ (process.env.ACCESS_TOKEN_EXPIRY) }
     );
 }
 Userschema.methods.generateRefreshToken = function () {
@@ -60,12 +66,15 @@ Userschema.methods.generateRefreshToken = function () {
         {
             id: this._id,
             email: this.email,
-            role: this.role,
-            hospital_id: this.hospital_id,
+            role: this.role
         },
         process.env.REFRESH_TOKEN_SECRET,
-        { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
+        { expiresIn: /** @type {any} */ (process.env.REFRESH_TOKEN_EXPIRY) }
     );
 }
-const User = moongose.model("User", Userschema);
-export default User;
+Userschema.methods.checkisvaliduser = function () {
+    return this.role === "Super Admin" || this.status === "Approved";
+}   
+const User = mongoose.model("User", Userschema);
+module.exports = User;
+

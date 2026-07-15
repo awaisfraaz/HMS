@@ -17,6 +17,11 @@ const HospitalSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    status: {
+        type: String,
+        default: "Pending",
+        enum: ["Pending", "Approved", "Rejected"]
+    },
     subscriptiontier: {
         type: String,
         enum: ["Basic", "Pro", "Enterprise"],
@@ -28,3 +33,4 @@ const HospitalSchema = new mongoose.Schema({
 }, { timestamps: true })
 const Hospital = mongoose.model("Hospital", HospitalSchema);
 module.exports = Hospital;  
+
