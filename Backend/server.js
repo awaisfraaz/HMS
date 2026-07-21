@@ -13,14 +13,26 @@ app.use(cors({
         if (!origin) return callback(null, true);
         return callback(null, origin);
     },
-    credentials: true
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(cookieParser());
 
-dbconnect();
+// Middleware to ensure DB connection before executing API routes on Serverless
+app.use(async (req, res, next) => {
+    try {
+        await dbconnect();
+        next();
+    } catch (err) {
+        console.error("Database Connection Error:", err);
+        res.status(500).json({ message: "Database connection failed" });
+    }
+});
 
 app.get("/", (req, res) => {
     res.json({ status: "online", message: "HMS Backend API is running successfully!" });
