@@ -2,6 +2,8 @@
 .env
 *.env
 .mcp.json
+.vercel
+
 
 # Node dependencies
 node_modules/
