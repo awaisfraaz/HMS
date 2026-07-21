@@ -1,17 +1,20 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 const BillSchema = new mongoose.Schema({
 
-    bill_id: {
-        type: String,
-        required: true,
-        unique: true,
-    },
+  
     hospitalId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Hospital"
     },
-
+    patientId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Patient"
+    },
     patientName: {
+        type: String,
+        required: true,
+    },
+    description:{
         type: String,
         required: true,
     },
@@ -30,35 +33,10 @@ const BillSchema = new mongoose.Schema({
     paymentMode: {
         type: String,
         required: true,
-    },
-    status: {
-        type: String,
-        required: true,
-    },
+    }
 
 }, { timestamps: true })
 const Bill = mongoose.model("Bill", BillSchema);
 
-const billitemschema = new mongoose.Schema({
-    billitemid: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    billId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Bill"
-    },
-    desc: {
-        type: String,
-        required: true,
-    },
-    amount: {
-        type: Number,
-        required: true,
-    },
-});
-
-const BillItem = mongoose.model("BillItem", billitemschema);
-
-export { Bill, BillItem };
+    
+module.exports = Bill;

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital Admin Dashboard - HMS SaaS</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/hospital-admin.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" aria-label="Sidebar Menu">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo" aria-hidden="true">+</div>
+        <div>
+          <span class="sidebar-title">Aegis Portal</span>
+          <span class="sidebar-subtitle">Hospital Control</span>
+        </div>
+      </div>
+      <nav aria-label="Main Navigation">
+        <ul class="sidebar-menu">
+          <li class="menu-item active" role="link" aria-current="page">Dashboard</li>
+          <li class="menu-item" role="link" onclick="window.location.href='token-generation.html'">Issue Tokens</li>
+          <li class="menu-item" role="link" onclick="window.location.href='billing-invoice.html'">Billing</li>
+          <li class="menu-item" role="link" onclick="window.location.href='live-queue.html'">Queue Monitor</li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <span class="text-muted">Logged in as:</span>
+          <div id="admin-username" class="text-light">Hospital Admin</div>
+        </div>
+        <button id="logout-btn" class="logout-btn">Log Out</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="page-header">
+        <h1 class="page-title" id="hospital-title">City General Hospital</h1>
+        <div class="hospital-badge" id="hospital-sub-badge">City General (Enterprise)</div>
+      </header>
+
+      <!-- Alert Notification Banner -->
+      <div id="alert-banner" class="alert-banner hidden" role="status" aria-live="polite">
+        <span id="alert-text">Operation completed.</span>
+        <button id="close-alert-btn" class="close-banner-btn" aria-label="Close Alert">&times;</button>
+      </div>
+
+      <!-- Hospital Stats Grid -->
+      <section class="metrics-grid" aria-label="Hospital Statistics">
+        <div class="metric-card">
+          <span class="metric-title">Registered Doctors</span>
+          <div class="metric-value" id="stat-doctors">0</div>
+        </div>
+        <div class="metric-card">
+          <span class="metric-title">Today's Total Tokens</span>
+          <div class="metric-value" id="stat-tokens">0</div>
+        </div>
+        <div class="metric-card">
+          <span class="metric-title">Total Paid Revenue</span>
+          <div class="metric-value" id="stat-revenue">$0</div>
+        </div>
+        <div class="metric-card">
+          <span class="metric-title">SaaS Subscription</span>
+          <div class="metric-value" id="stat-plan">Enterprise</div>
+        </div>
+      </section>
+
+      <!-- Content Split Grid (Doctors List & Form) -->
+      <div class="content-grid">
+        <!-- Left: Registered Doctors Table -->
+        <section class="card" aria-label="Doctors Directory">
+          <div class="card-header">
+            <h2 class="card-title">Staff Doctors & Availability</h2>
+          </div>
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">Doctor Name</th>
+                  <th scope="col">Specialty</th>
+                  <th scope="col">Room</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="doctors-table-body">
+                <!-- Dynamically populated via hospital-admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Right: Register New Doctor Form -->
+        <section class="card" aria-label="Add Doctor Form">
+          <div class="card-header">
+            <h2 class="card-title">Register New Doctor</h2>
+          </div>
+          <form id="add-doctor-form">
+            <div class="form-group">
+              <label for="doc-name" class="form-label">Doctor Name</label>
+              <input type="text" id="doc-name" class="form-input" placeholder="e.g., Dr. Gregory House" required>
+            </div>
+            <div class="form-group">
+              <label for="doc-email" class="form-label">Email Address</label>
+              <input type="email" id="doc-email" class="form-input" placeholder="e.g., house@hms.com" required>
+            </div>
+            <div class="form-group">
+              <label for="doc-password" class="form-label">Password</label>
+              <input type="password" id="doc-password" class="form-input" placeholder="••••••••" required>
+            </div>
+            <div class="form-group">
+              <label for="doc-specialty" class="form-label">Specialty / Department</label>
+              <select id="doc-specialty" class="form-input">
+                <option value="General Medicine" selected>General Medicine</option>
+                <option value="Cardiology">Cardiology</option>
+                <option value="Pediatrics">Pediatrics</option>
+                <option value="Orthopedics">Orthopedics</option>
+                <option value="Dermatology">Dermatology</option>
+                <option value="Gynaecology">Gynaecology</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="doc-room" class="form-label">Consultation Room</label>
+              <input type="text" id="doc-room" class="form-input" placeholder="e.g., Room 302" required>
+            </div>
+            <div class="form-group">
+              <label for="doc-fee" class="form-label">Consultation Fee ($)</label>
+              <input type="number" id="doc-fee" class="form-input" placeholder="e.g., 50" required min="0">
+            </div>
+            <div class="form-group">
+              <label for="doc-schedule" class="form-label">Weekly Schedule</label>
+              <input type="text" id="doc-schedule" class="form-input" placeholder="e.g., Mon - Fri (09:00 AM - 04:00 PM)" required>
+            </div>
+            <button type="submit" class="submit-btn">Register Doctor</button>
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/hospital-admin.js"></script>
+</body>
+</html>

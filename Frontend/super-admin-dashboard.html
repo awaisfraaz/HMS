@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin Dashboard - HMS SaaS</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/super-admin.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" aria-label="Sidebar Menu">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo" aria-hidden="true">+</div>
+        <span class="sidebar-title">Aegis SaaS</span>
+      </div>
+      <nav aria-label="Main Navigation">
+        <ul class="sidebar-menu">
+          <li class="menu-item active" data-section="hospitals" role="link" aria-current="page">Hospitals</li>
+          <li class="menu-item" data-section="users" role="link">User Approvals</li>
+          <li class="menu-item" data-section="plans" role="link">Subscription Plans</li>
+          <li class="menu-item" data-section="analytics" role="link">Platform Analytics</li>
+          <li class="menu-item" data-section="settings" role="link">System Settings</li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <span class="text-muted">Logged in as:</span>
+          <div id="admin-username" class="text-light">Super Admin</div>
+        </div>
+        <button id="logout-btn" class="logout-btn">Log Out</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="page-header">
+        <h1 class="page-title" id="main-page-title">Hospital Directory</h1>
+        <div class="date-badge" id="current-date">July 7, 2026</div>
+      </header>
+
+      <!-- Live Notification Banner -->
+      <div id="notification-banner" class="notification-banner hidden" role="status" aria-live="polite">
+        <span id="notification-text">Action completed successfully.</span>
+        <button id="close-banner-btn" class="close-banner-btn" aria-label="Close Notification">&times;</button>
+      </div>
+
+      <!-- Section: Hospitals -->
+      <div id="section-hospitals" class="dashboard-section">
+        <!-- Platform Metrics Grid -->
+        <section class="metrics-grid" aria-label="Platform Statistics">
+          <div class="metric-card">
+            <span class="metric-title">Hospitals Onboarded</span>
+            <div class="metric-value" id="stat-total-hospitals">0</div>
+            <span class="metric-trend trend-up">↑ 12% this month</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Active Tenants</span>
+            <div class="metric-value" id="stat-active-hospitals">0</div>
+            <span class="metric-trend trend-up">↑ 8% active</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Pending Authorizations</span>
+            <div class="metric-value" id="stat-pending-hospitals">0</div>
+            <span class="metric-trend text-muted">Requires verification</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-title">Estimated SaaS MRR</span>
+            <div class="metric-value" id="stat-saas-revenue">$0/mo</div>
+            <span class="metric-trend trend-up">↑ $1,598 MRR growth</span>
+          </div>
+        </section>
+
+        <!-- Hospitals Directory List Card -->
+        <section class="table-card" aria-label="Registered Hospitals Table">
+          <div class="card-header">
+            <h2 class="card-title">All Hospital Tenants</h2>
+            
+            <!-- Filters Group -->
+            <div class="filter-group">
+              <label for="filter-status" class="visually-hidden">Filter by Status</label>
+              <select id="filter-status" class="filter-select" aria-label="Filter by Status">
+                <option value="All">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Pending">Pending</option>
+                <option value="Suspended">Suspended</option>
+              </select>
+              
+              <label for="filter-plan" class="visually-hidden">Filter by Plan</label>
+              <select id="filter-plan" class="filter-select" aria-label="Filter by Plan">
+                <option value="All">All Subscription Plans</option>
+                <option value="Basic">Basic Plan</option>
+                <option value="Pro">Pro Plan</option>
+                <option value="Enterprise">Enterprise Plan</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">Hospital Name</th>
+                  <th scope="col">Location</th>
+                  <th scope="col">Subscription Plan</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Onboarding Date</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="hospitals-table-body">
+                <!-- Dynamically populated via super-admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- Section: Subscription Plans -->
+      <div id="section-plans" class="dashboard-section hidden">
+        <div class="plans-grid">
+          <!-- Basic Plan Card -->
+          <div class="plan-card">
+            <h3 class="plan-name">Basic Plan</h3>
+            <div class="plan-price">$99<span>/mo</span></div>
+            <ul class="plan-features">
+              <li>Max 5 Active Doctors</li>
+              <li>Max 10 Active Staff</li>
+              <li>Basic Queue Management</li>
+              <li>Standard Invoices & Billing</li>
+              <li>Email Support</li>
+            </ul>
+            <div class="plan-footer">
+              <span class="plan-stats">Active Tenants: <strong id="plans-count-basic">0</strong></span>
+              <button class="btn-action" onclick="alert('Pricing configs modification is restricted in read-only demo mode.')">Modify</button>
+            </div>
+          </div>
+          <!-- Pro Plan Card -->
+          <div class="plan-card featured">
+            <div class="plan-badge-featured">Most Popular</div>
+            <h3 class="plan-name">Pro Plan</h3>
+            <div class="plan-price">$299<span>/mo</span></div>
+            <ul class="plan-features">
+              <li>Max 15 Active Doctors</li>
+              <li>Max 30 Active Staff</li>
+              <li>Radiography / Lab Billings</li>
+              <li>Appointment Reservations</li>
+              <li>Queue Telemetry Stats</li>
+              <li>Priority Support</li>
+            </ul>
+            <div class="plan-footer">
+              <span class="plan-stats">Active Tenants: <strong id="plans-count-pro">0</strong></span>
+              <button class="btn-action" onclick="alert('Pricing configs modification is restricted in read-only demo mode.')">Modify</button>
+            </div>
+          </div>
+          <!-- Enterprise Plan Card -->
+          <div class="plan-card">
+            <h3 class="plan-name">Enterprise Plan</h3>
+            <div class="plan-price">$799<span>/mo</span></div>
+            <ul class="plan-features">
+              <li>Unlimited Doctors & Staff</li>
+              <li>Full Queue Telemetry Boards</li>
+              <li>Advanced Department Isolation</li>
+              <li>API Integration Hooks</li>
+              <li>Custom Domain Setup</li>
+              <li>Dedicated Support Manager</li>
+            </ul>
+            <div class="plan-footer">
+              <span class="plan-stats">Active Tenants: <strong id="plans-count-enterprise">0</strong></span>
+              <button class="btn-action" onclick="alert('Pricing configs modification is restricted in read-only demo mode.')">Modify</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Platform Analytics -->
+      <div id="section-analytics" class="dashboard-section hidden">
+        <div class="analytics-grid">
+          <!-- Revenue Graph -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">MRR Share By Subscription Plan</h3>
+              <p class="chart-subtitle">Monthly Recurring Revenue contribution by active tenants</p>
+            </div>
+            <div class="bar-chart">
+              <div class="chart-row">
+                <span class="chart-row-label">Enterprise</span>
+                <div class="chart-row-bar-bg">
+                  <div id="chart-bar-enterprise" class="chart-row-bar-fill" style="width: 0%;"></div>
+                </div>
+                <span class="chart-row-value" id="chart-val-enterprise">$0</span>
+              </div>
+              <div class="chart-row">
+                <span class="chart-row-label">Pro Plan</span>
+                <div class="chart-row-bar-bg">
+                  <div id="chart-bar-pro" class="chart-row-bar-fill accent" style="width: 0%;"></div>
+                </div>
+                <span class="chart-row-value" id="chart-val-pro">$0</span>
+              </div>
+              <div class="chart-row">
+                <span class="chart-row-label">Basic Plan</span>
+                <div class="chart-row-bar-bg">
+                  <div id="chart-bar-basic" class="chart-row-bar-fill" style="width: 0%;"></div>
+                </div>
+                <span class="chart-row-value" id="chart-val-basic">$0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Usage Metrics Summary -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">Platform-Wide Usage Summary</h3>
+              <p class="chart-subtitle">Aggregate metrics across all active databases</p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: var(--spacing-md); margin-top: var(--spacing-md);">
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-xs);">
+                <span class="text-muted">Total Registered Doctors:</span>
+                <strong id="analytics-total-doctors" class="text-primary">0</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-xs);">
+                <span class="text-muted">Total Booked Reservations:</span>
+                <strong id="analytics-total-appointments" class="text-primary">0</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--color-border); padding-bottom: var(--spacing-xs);">
+                <span class="text-muted">Total Active Queue Tokens:</span>
+                <strong id="analytics-total-tokens" class="text-primary">0</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding-bottom: var(--spacing-xs);">
+                <span class="text-muted">Aggregate Invoice Entries:</span>
+                <strong id="analytics-total-bills" class="text-primary">0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: System Settings -->
+      <div id="section-settings" class="dashboard-section hidden">
+        <div class="table-card">
+          <div class="card-header">
+            <h2 class="card-title">SaaS Platform Configuration</h2>
+          </div>
+          <form id="settings-form" class="settings-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settings-site-title" class="form-label">Platform Portal Title</label>
+                <input type="text" id="settings-site-title" class="form-input" value="Aegis SaaS Portal">
+              </div>
+              <div class="form-group">
+                <label for="settings-domain" class="form-label">Primary Gateway Domain</label>
+                <input type="text" id="settings-domain" class="form-input" value="portal.aegishealth.com">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="settings-default-tier" class="form-label">Default New Onboarding Tier</label>
+                <select id="settings-default-tier" class="form-input">
+                  <option value="Basic">Basic Plan ($99)</option>
+                  <option value="Pro" selected>Pro Plan ($299)</option>
+                  <option value="Enterprise">Enterprise Plan ($799)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="settings-support-email" class="form-label">System Notification Email</label>
+                <input type="email" id="settings-support-email" class="form-input" value="notifications@aegishealth.com">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="toggle-container">
+                <input type="checkbox" id="settings-auto-approve" class="toggle-input" checked>
+                <span>Require manual verification before activating new signups</span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label class="toggle-container">
+                <input type="checkbox" id="settings-maintenance" class="toggle-input">
+                <span style="color: var(--color-danger); font-weight: bold;">Enable Platform Maintenance Mode</span>
+              </label>
+            </div>
+            <button type="submit" class="btn-save-settings">Save System Configuration</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Section: User Approvals -->
+      <div id="section-users" class="dashboard-section hidden">
+        <section class="table-card" aria-label="Staff Approvals Table">
+          <div class="card-header">
+            <h2 class="card-title">Pending & Registered Staff Requests</h2>
+            <div class="filter-group">
+              <label for="filter-user-status" class="visually-hidden">Filter User Status</label>
+              <select id="filter-user-status" class="filter-select">
+                <option value="All">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Pending" selected>Pending</option>
+                <option value="Suspended">Suspended</option>
+              </select>
+              <label for="filter-user-role" class="visually-hidden">Filter User Role</label>
+              <select id="filter-user-role" class="filter-select">
+                <option value="All">All Roles</option>
+                <option value="Hospital Admin">Hospital Admin</option>
+                <option value="Doctor">Doctor</option>
+                <option value="Receptionist">Receptionist</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Role</th>
+                  <th scope="col">Hospital</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <!-- User rows injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/mock-data.js"></script>
+  <script src="js/super-admin.js"></script>
+  <script>
+    // Live date display update
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  </script>
+</body>
+</html>

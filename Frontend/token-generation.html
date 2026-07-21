@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Generation - HMS SaaS</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/token-generation.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" aria-label="Sidebar Menu">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo" aria-hidden="true">+</div>
+        <span class="sidebar-title">Aegis Reception</span>
+      </div>
+      <nav aria-label="Main Navigation">
+        <ul class="sidebar-menu">
+          <li class="menu-item active" role="link" aria-current="page">Issue Tokens</li>
+          <li class="menu-item" role="link" onclick="window.location.href='billing-invoice.html'">Billing</li>
+          <li class="menu-item" role="link" onclick="window.location.href='live-queue.html'">Queue Monitor</li>
+          <li class="menu-item" role="link" onclick="window.location.href='hospital-admin-dashboard.html'">Hospital Control</li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <span class="text-muted">Reception Desk:</span>
+          <div id="receptionist-username" class="text-light">Staff</div>
+        </div>
+        <button id="logout-btn" class="logout-btn">Log Out</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="page-header">
+        <h1 class="page-title" id="hospital-title">City General Hospital</h1>
+        <div class="date-badge" id="current-date">July 7, 2026</div>
+      </header>
+
+      <!-- Workspace Form & Ticket Container -->
+      <div class="workspace-grid">
+        <!-- Left: Issue Token Form -->
+        <section class="card" aria-label="Issue Token Section">
+          <div class="card-header">
+            <h2 class="card-title">Issue Appointment Token</h2>
+            <ul class="shortcuts-list" aria-label="Keyboard Shortcuts">
+              <li><kbd class="shortcut-badge">Alt + D</kbd> Dept</li>
+              <li><kbd class="shortcut-badge">Alt + P</kbd> Patient</li>
+              <li><kbd class="shortcut-badge">Alt + N</kbd> Phone</li>
+              <li><kbd class="shortcut-badge">Alt + G</kbd> Submit</li>
+            </ul>
+          </div>
+          
+          <form id="token-form">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="token-dept" class="form-label">Department</label>
+                <select id="token-dept" class="form-input" required>
+                  <!-- Dynamically populated -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="token-doctor" class="form-label">Available Doctor</label>
+                <select id="token-doctor" class="form-input" required>
+                  <option value="" disabled selected>Select Department First</option>
+                </select>
+              </div>
+              <div class="form-group full-width">
+                <label for="patient-name" class="form-label">Patient Full Name</label>
+                <input type="text" id="patient-name" class="form-input" placeholder="e.g., John Doe" required autocomplete="name">
+              </div>
+              <div class="form-group">
+                <label for="patient-phone" class="form-label">Patient Mobile Number (Optional)</label>
+                <input type="tel" id="patient-phone" class="form-input" placeholder="e.g., +1 (555) 019-2834" autocomplete="tel">
+              </div>
+              <div class="form-group">
+                <label for="patient-age" class="form-label">Patient Age</label>
+                <input type="number" id="patient-age" class="form-input" placeholder="e.g., 25" min="0" required>
+              </div>
+              <div class="form-group">
+                <label for="patient-gender" class="form-label">Patient Gender</label>
+                <select id="patient-gender" class="form-input" required>
+                  <option value="" disabled selected>Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="patient-bloodgroup" class="form-label">Patient Blood Group</label>
+                <select id="patient-bloodgroup" class="form-input" required>
+                  <option value="" disabled selected>Select Blood Group</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn-generate">Generate Queue Token (Alt + G)</button>
+          </form>
+        </section>
+
+        <!-- Right: Print Ticket Card (Hidden by default, shows on submit) -->
+        <section class="card" aria-label="Generated Ticket Preview">
+          <div class="card-header">
+            <h2 class="card-title">Last Issued Ticket Preview</h2>
+          </div>
+          <div class="ticket-container">
+            <div id="ticket-preview" class="ticket hidden" aria-live="polite">
+              <div class="ticket-header">Appointment Queue Ticket</div>
+              <div class="ticket-number" id="ticket-num">#1</div>
+              <div class="ticket-detail">Doctor: <strong id="ticket-doc">Dr. Gregory House</strong></div>
+              <div class="ticket-detail">Dept: <strong id="ticket-department">Cardiology</strong></div>
+              <div class="ticket-detail">Patient: <strong id="ticket-patient">John Doe</strong></div>
+              <div class="ticket-detail">Est. Wait: <strong id="ticket-wait">0 mins</strong></div>
+              <div class="ticket-footer" id="ticket-time">09:42 AM | Today</div>
+              <button id="print-ticket-btn" class="btn-print">Print Ticket</button>
+            </div>
+            <!-- Placeholder before token is issued -->
+            <div id="ticket-placeholder" class="text-muted" style="text-align: center;">
+              Fill in the form on the left to generate an active queue ticket.
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Today's Issued Tokens List -->
+      <section class="table-card" aria-label="Today's Issued Tokens">
+        <div class="card-header">
+          <h2 class="card-title">Today's Token History Log</h2>
+        </div>
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Token No.</th>
+                <th scope="col">Patient Name</th>
+                <th scope="col">Department</th>
+                <th scope="col">Doctor Assigned</th>
+                <th scope="col">Time Issued</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody id="tokens-table-body">
+              <!-- Dynamically populated via token-generation.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/token-generation.js"></script>
+  <script>
+    // Live date display update
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+
+    // Hide placeholder when ticket is displayed
+    const observer = new MutationObserver(() => {
+      const ticket = document.getElementById('ticket-preview');
+      const placeholder = document.getElementById('ticket-placeholder');
+      if (ticket.classList.contains('hidden')) {
+        placeholder.style.display = 'block';
+      } else {
+        placeholder.style.display = 'none';
+      }
+    });
+    observer.observe(document.getElementById('ticket-preview'), { attributes: true, attributeFilter: ['class'] });
+  </script>
+</body>
+</html>

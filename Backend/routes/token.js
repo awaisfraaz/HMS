@@ -19,57 +19,41 @@ router.get('/all',verifyjwt,async (req,res)=>{
 // generate token 
 router.post('/generate',verifyjwt,async (req,res)=>{
     try {
-        const {
-            hospitalid, doctorid, tokenid, patientname, patientphone, tokennumber, status, waittime, doctorName, department,
-            hospitalId, doctorId, patientName, patientPhone, tokenNumber, waitTime, issuedTime,bloodgroup,age,gender
-        } = req.body;
+        const { doctorId, patientName, patientPhone, age, gender, bloodgroup } = req.body;
 
-        const resolvedHospitalId = hospitalId || hospitalid || req.user.hospital_id;
-        const resolvedDoctorId = doctorId || doctorid;
-        const resolvedPatientName = patientName || patientname;
-        const resolvedPatientPhone = patientPhone || patientphone || "";
+        const resolvedHospitalId = req.user.hospital_id;
+        const resolvedDoctorId = doctorId;
+        const resolvedPatientName = patientName;
+        const resolvedPatientPhone = patientPhone || "";
 
-        if (!resolvedDoctorId || !resolvedPatientName) {
-            return res.status(400).json({ message: "Doctor ID and Patient Name are required" });
+        if (!resolvedDoctorId || !resolvedPatientName || !age || !gender || !bloodgroup) {
+            return res.status(400).json({ message: "Doctor ID, Patient Name, Age, Gender, and Blood Group are required" });
         }
-        //  create doctor 
-      
-            
 
-        // Find doctor details if name/department not provided
-        let resolvedDoctorName = doctorName;
-        let resolvedDepartment = department;
-        if (!resolvedDoctorName || !resolvedDepartment) {
-            const doctor = await Doctor.findById(resolvedDoctorId);
-            if (doctor) {
-                resolvedDoctorName = doctor.name;
-                resolvedDepartment = doctor.speciality || doctor.specialty || "General Medicine";
-            } else {
-                return res.status(404).json({ message: "Doctor not found" });
-            }
+        // Find doctor details directly from database
+        const doctor = await Doctor.findById(resolvedDoctorId);
+        if (!doctor) {
+            return res.status(404).json({ message: "Doctor not found" });
         }
+        const resolvedDoctorName = doctor.name;
+        const resolvedDepartment = doctor.speciality || doctor.specialty || "General Medicine";
         
-        // Generate sequential token number for this doctor if not provided
-        let resolvedTokenNumber = tokenNumber || tokennumber;
-        if (!resolvedTokenNumber) {
-            const count = await Token.countDocuments({ doctorId: resolvedDoctorId });
-            resolvedTokenNumber = count + 1;
-        }
+        // Generate sequential token number for this doctor
+        const count = await Token.countDocuments({ doctorId: resolvedDoctorId });
+        const resolvedTokenNumber = count + 1;
 
-        // Calculate wait time if not provided
-        let resolvedWaitTime = waitTime || waittime;
-        if (!resolvedWaitTime) {
-            const waitingCount = await Token.countDocuments({ doctorId: resolvedDoctorId, status: "Waiting" });
-            const waitTimeVal = waitingCount * 10;
-            resolvedWaitTime = waitTimeVal > 0 ? `${waitTimeVal} mins` : "Immediate";
-        }
+        // Calculate estimated wait time
+        const waitingCount = await Token.countDocuments({ doctorId: resolvedDoctorId, status: "Waiting" });
+        const waitTimeVal = waitingCount * 10;
+        const resolvedWaitTime = waitTimeVal > 0 ? `${waitTimeVal} mins` : "Immediate";
 
-        // Issued time
-        const resolvedIssuedTime = issuedTime || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        // Current time format
+        const resolvedIssuedTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        // Unique tokenid
-        const resolvedTokenid = tokenid || `TK-${resolvedHospitalId.toString().substring(18)}-${resolvedDoctorId.toString().substring(18)}-${Date.now()}`;
+        // Generate unique tokenid
+        const resolvedTokenid = `TK-${resolvedHospitalId.toString().substring(18)}-${resolvedDoctorId.toString().substring(18)}-${Date.now()}`;
 
+        // Save token to database
         const token = await Token.create({
             tokenid: resolvedTokenid,
             hospitalId: resolvedHospitalId,
@@ -79,11 +63,13 @@ router.post('/generate',verifyjwt,async (req,res)=>{
             patientName: resolvedPatientName,
             patientPhone: resolvedPatientPhone,
             tokenNumber: resolvedTokenNumber,
-            status: status || "Waiting",
+            status: "Waiting",
             issuedTime: resolvedIssuedTime,
             waitTime: resolvedWaitTime
         });
-            const patient = await Patient.create({
+
+        // Save patient registration details to database
+        const patient = await Patient.create({
             name: resolvedPatientName,
             age: Number(age),
             gender: gender,
@@ -124,4 +110,17 @@ router.get('/totaltokengeneratedinday',verifyjwt,async (req,res)=>{
         res.status(500).json({ message: "Internal server error" });
     }
 })
+
+router.get('/public-queue/:hospitalId', async (req, res) => {
+    try {
+        const { hospitalId } = req.params;
+        const tokens = await Token.find({ hospitalId });
+        const doctors = await Doctor.find({ hospital_id: hospitalId });
+        res.status(200).json({ tokens, doctors });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
 module.exports=router;

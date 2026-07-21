@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnostics Billing - HMS</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/diagnostics-billing.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" aria-label="Sidebar Menu">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo" aria-hidden="true">+</div>
+        <span class="sidebar-title">Aegis Diagnostics</span>
+      </div>
+      <nav aria-label="Main Navigation">
+        <ul class="sidebar-menu">
+          <li class="menu-item" role="link" onclick="window.location.href='token-generation.html'">Issue Tokens</li>
+          <li class="menu-item" role="link" onclick="window.location.href='billing-invoice.html'">Billing</li>
+          <li class="menu-item" role="link" onclick="window.location.href='appointment-reservations.html'">Reservations</li>
+          <li class="menu-item active" role="link" aria-current="page">Diagnostics Billing</li>
+          <li class="menu-item" role="link" onclick="window.location.href='live-queue.html'">Queue Monitor</li>
+          <li class="menu-item" role="link" onclick="window.location.href='hospital-admin-dashboard.html'">Hospital Control</li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <span class="text-muted">Diagnostics Desk:</span>
+          <div id="receptionist-username" class="text-light">Staff</div>
+        </div>
+        <button id="logout-btn" class="logout-btn">Log Out</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="page-header">
+        <h1 class="page-title" id="hospital-title">City General Hospital</h1>
+        <div class="date-badge" id="current-date">July 7, 2026</div>
+      </header>
+
+      <!-- Alert Notification Banner -->
+      <div id="alert-banner" class="alert-banner hidden" role="status" aria-live="polite">
+        <span id="alert-text">Operation completed.</span>
+        <button id="close-alert-btn" class="close-banner-btn" aria-label="Close Alert">&times;</button>
+      </div>
+
+      <!-- Split Workspace -->
+      <div class="workspace-grid">
+        <!-- Left: Calculator Builder -->
+        <section class="card" aria-label="Diagnostics Calculator">
+          <div class="card-header">
+            <h2 class="card-title">Diagnostics Invoice Generator</h2>
+          </div>
+          
+          <form id="billing-form">
+            <div class="form-group">
+              <label for="patient-name" class="form-label">Patient Full Name</label>
+              <input type="text" id="patient-name" class="form-input" placeholder="e.g., Arthur Dent" required autocomplete="name">
+            </div>
+
+            <!-- Catalogs Selection Grid -->
+            <div class="catalog-sections">
+              <!-- Radiography Column -->
+              <div>
+                <h3 class="catalog-column-title">Radiography Dept (X-Ray / MRI)</h3>
+                <div id="radiography-grid">
+                  <!-- Dynamically populated checkboxes -->
+                </div>
+              </div>
+
+              <!-- Laboratory Column -->
+              <div>
+                <h3 class="catalog-column-title">Laboratory Dept (RFT / LFT / PCR)</h3>
+                <div id="laboratory-grid">
+                  <!-- Dynamically populated checkboxes -->
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="payment-mode" class="form-label">Payment Mode</label>
+              <select id="payment-mode" class="form-input">
+                <option value="Card">Card Payment</option>
+                <option value="Cash">Cash Payment</option>
+                <option value="Pending">Mark Unpaid (Pending Payment)</option>
+              </select>
+            </div>
+
+            <!-- Calculations Box -->
+            <div class="form-group calculation-box">
+              <span>Selected Tests Total:</span>
+              <div class="total-amount" id="total-amount-display">$0.00</div>
+            </div>
+
+            <button type="submit" class="btn-checkout">Generate Diagnostics Bill</button>
+          </form>
+        </section>
+
+        <!-- Right: Receipt Slip Preview -->
+        <section class="card" aria-label="Invoice Slip Preview">
+          <div class="card-header">
+            <h2 class="card-title">Diagnostics Receipt Slip</h2>
+          </div>
+          <div class="receipt-container">
+            <div id="receipt-preview" class="receipt hidden" aria-live="polite">
+              <div class="receipt-header">
+                <div class="receipt-hosp-name">Aegis Diagnostic Billing</div>
+                <div class="receipt-meta">Invoice ID: <span id="rec-number">INV-4001</span></div>
+              </div>
+              <div class="receipt-details">
+                <div>Patient Name: <strong id="rec-patient">Arthur Dent</strong></div>
+                <div>Date & Time: <span id="rec-date">2026-07-07 11:32 AM</span></div>
+              </div>
+              <table class="receipt-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Test Description</th>
+                    <th scope="col" style="text-align: right;">Cost</th>
+                  </tr>
+                </thead>
+                <tbody id="receipt-items-body">
+                  <!-- Dynamically populated lines -->
+                </tbody>
+              </table>
+              <div class="receipt-total-row">Total Cost: <span id="receipt-total">$0.00</span></div>
+              <button id="print-receipt-btn" class="btn-print">Print Diagnostics Receipt</button>
+            </div>
+            <!-- Placeholder -->
+            <div id="receipt-placeholder" class="text-muted" style="text-align: center; margin-top: var(--spacing-xl);">
+              Check out tests on the left to render a printable diagnostics receipt.
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- History Table -->
+      <section class="table-card" aria-label="Daily Invoices History Log">
+        <div class="card-header">
+          <h2 class="card-title">Daily Diagnostics Log History</h2>
+        </div>
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Invoice ID</th>
+                <th scope="col">Patient Name</th>
+                <th scope="col">Services Billed</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Mode</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bills-table-body">
+              <!-- Dynamically populated via diagnostics-billing.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/diagnostics-billing.js"></script>
+  <script>
+    // Live date display update
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  </script>
+</body>
+</html>

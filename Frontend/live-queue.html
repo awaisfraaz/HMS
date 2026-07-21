@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Queue Board - HMS</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/live-queue.css">
+</head>
+<body>
+  <div class="live-container">
+    <!-- Board Header -->
+    <header class="board-header">
+      <div class="brand-title">
+        <div class="brand-icon" aria-hidden="true">+</div>
+        <div>
+          <h1 class="hospital-name" id="hospital-title">City General Hospital</h1>
+          <span class="board-label">Live Patient Appointment Queue Board</span>
+        </div>
+      </div>
+      <div class="time-clock" id="live-clock" aria-label="Current Time">12:00:00 PM</div>
+    </header>
+
+    <!-- Master Monitor Display Grid -->
+    <main class="main-display">
+      <!-- Left Column: Hero Now Serving -->
+      <section class="now-serving-hero" aria-label="Currently Called Patient">
+        <div class="hero-label" id="pulse-label">Now Serving</div>
+        <div class="hero-token" id="hero-token-num">—</div>
+        <div class="hero-room" id="hero-room-num">—</div>
+        <div class="hero-doctor" id="hero-doc-name">No Patients in Queue</div>
+      </section>
+
+      <!-- Right Column: Doctor-wise queue grid -->
+      <section class="doctors-grid" id="doctors-grid" aria-label="All Doctor Status Cards">
+        <!-- Dynamically populated via live-queue.js -->
+      </section>
+    </main>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/live-queue.js"></script>
+</body>
+</html>
