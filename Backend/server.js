@@ -22,6 +22,10 @@ app.use(cookieParser());
 
 dbconnect();
 
+app.get("/", (req, res) => {
+    res.json({ status: "online", message: "HMS Backend API is running successfully!" });
+});
+
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Promise Rejection:', reason);
 });
