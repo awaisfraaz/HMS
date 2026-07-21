@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis HMS - Multi-Tenant Health Operations Platform</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/landing-page.css">
+</head>
+<body>
+
+  <!-- Hero Section -->
+  <section class="hero" aria-label="Aegis HMS Overview">
+    <!-- Navigation Bar -->
+    <header class="navbar" role="banner">
+      <div class="nav-brand">
+        <div class="nav-logo" aria-hidden="true">+</div>
+        <span>Aegis HMS</span>
+      </div>
+      <nav class="nav-links" aria-label="Quick Access">
+        <a href="login-onboarding.html" class="btn-nav-login">Sign In</a>
+        <a href="login-onboarding.html" class="btn-cta" style="padding: 8px 16px; font-size: var(--font-size-sm);">Get Started</a>
+      </nav>
+    </header>
+
+    <div class="hero-content">
+      <span class="hero-tagline">Clinical Command Center SaaS</span>
+      <h1 class="hero-headline">Seamless Operations for Large Scale Hospital Networks</h1>
+      <p class="hero-subtext">
+        An enterprise-grade, multi-tenant software system designed for clinics and hospital systems to isolate patient records, automate queue tokens, and process cashier billing.
+      </p>
+      <a href="login-onboarding.html" class="btn-cta">Start Onboarding Your Hospital</a>
+    </div>
+  </section>
+
+  <!-- Core Features -->
+  <main class="features-section">
+    <h2 class="section-title">Integrated Healthcare Modules</h2>
+    <div class="features-grid">
+      <!-- Feature 1 -->
+      <article class="feature-card">
+        <div class="feature-icon" aria-hidden="true">🏢</div>
+        <h3 class="feature-title">Multi-Tenant Scoping</h3>
+        <p class="feature-desc">
+          Strict database separation per hospital. Administrators, billing cashier desks, and doctors operate within isolated environments.
+        </p>
+      </article>
+      <!-- Feature 2 -->
+      <article class="feature-card">
+        <div class="feature-icon" aria-hidden="true">🎟️</div>
+        <h3 class="feature-title">Token Queue Desk</h3>
+        <p class="feature-desc">
+          Keyboard-first front desk tool for issuing patient appointment tokens, selecting available doctors, and managing waiting times.
+        </p>
+      </article>
+      <!-- Feature 3 -->
+      <article class="feature-card">
+        <div class="feature-icon" aria-hidden="true">📺</div>
+        <h3 class="feature-title">Live Board Monitors</h3>
+        <p class="feature-desc">
+          Large-format queue boards showing serving and next-up patient token numbers, updating in real-time as checkups progress.
+        </p>
+      </article>
+      <!-- Feature 4 -->
+      <article class="feature-card">
+        <div class="feature-icon" aria-hidden="true">🩺</div>
+        <h3 class="feature-title">Doctor Consultation Panels</h3>
+        <p class="feature-desc">
+          Streamlined doctors queue panel with active note workspaces, diagnostics catalogs, and checkup completion actions.
+        </p>
+      </article>
+      <!-- Feature 5 -->
+      <article class="feature-card">
+        <div class="feature-icon" aria-hidden="true">💳</div>
+        <h3 class="feature-title">Unified Billing Desk</h3>
+        <p class="feature-desc">
+          Cashier-facing invoice generator, pre-loaded with medical, radiography, and lab test price catalogs with checkouts.
+        </p>
+      </article>
+      <!-- Feature 6 -->
+      <article class="feature-card">
+        <div class="feature-icon" aria-hidden="true">📈</div>
+        <h3 class="feature-title">SaaS Admin Directory</h3>
+        <p class="feature-desc">
+          Platform-wide oversight console for Super Admins to approve pending hospital signups, suspend active accounts, and monitor MRR.
+        </p>
+      </article>
+    </div>
+  </main>
+
+  <!-- Tenant Hierarchy Description Section (Answers: "Where/how do users register?") -->
+  <section class="flow-banner" aria-label="Tenant Mapping Workflow">
+    <div>
+      <h2 class="flow-title">How Hospital Association & Staff Registration Works</h2>
+      <p class="flow-text">
+        To maintain strict security and patient privacy, Aegis HMS operates on an **invitation-only SaaS model**. Doctors, receptionists, and medical staff cannot register independently. Instead, registration follows a structured chain:
+      </p>
+      <ul class="flow-steps">
+        <li class="flow-step">
+          <div class="step-num" aria-hidden="true">1</div>
+          <div class="step-content">
+            <h3 class="step-title">Hospital Onboarding</h3>
+            <p class="step-desc">A hospital registers as a tenant. This generates a root <strong>Hospital Admin</strong> account associated with that specific organization.</p>
+          </div>
+        </li>
+        <li class="flow-step">
+          <div class="step-num" aria-hidden="true">2</div>
+          <div class="step-content">
+            <h3 class="step-title">Platform Approval</h3>
+            <p class="step-desc">The SaaS platform owner (Super Admin) reviews, authorizes, and activates the hospital's tenant subscription profile.</p>
+          </div>
+        </li>
+        <li class="flow-step">
+          <div class="step-num" aria-hidden="true">3</div>
+          <div class="step-content">
+            <h3 class="step-title">Staff Onboarding</h3>
+            <p class="step-desc">The activated Hospital Admin registers doctors, receptionists, and staff profiles inside their dashboard, auto-generating secure logins mapped to their hospital.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div style="text-align: center; display: flex; flex-direction: column; gap: var(--spacing-md); align-items: center;">
+      <h3 style="font-size: var(--font-size-lg); font-weight: 700;">Ready to start?</h3>
+      <a href="login-onboarding.html" class="btn-cta">Proceed to Aegis Portal</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    &copy; 2026 Aegis Health Systems Inc. All rights reserved. &middot; Aegis HMS SaaS Platform.
+  </footer>
+
+</body>
+</html>

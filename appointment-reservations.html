@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointment Reservations - HMS</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/appointment-reservations.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" aria-label="Sidebar Menu">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo" aria-hidden="true">+</div>
+        <span class="sidebar-title">Aegis Booking</span>
+      </div>
+      <nav aria-label="Main Navigation">
+        <ul class="sidebar-menu">
+          <li class="menu-item" role="link" onclick="window.location.href='token-generation.html'">Issue Tokens</li>
+          <li class="menu-item" role="link" onclick="window.location.href='billing-invoice.html'">Billing</li>
+          <li class="menu-item active" role="link" aria-current="page">Reservations</li>
+          <li class="menu-item" role="link" onclick="window.location.href='live-queue.html'">Queue Monitor</li>
+          <li class="menu-item" role="link" onclick="window.location.href='hospital-admin-dashboard.html'">Hospital Control</li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <span class="text-muted">Cashier Desk:</span>
+          <div id="receptionist-username" class="text-light">Staff</div>
+        </div>
+        <button id="logout-btn" class="logout-btn">Log Out</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="page-header">
+        <h1 class="page-title" id="hospital-title">City General Hospital</h1>
+        <div class="date-badge" id="current-date">July 7, 2026</div>
+      </header>
+
+      <!-- Alert Notification Banner -->
+      <div id="alert-banner" class="alert-banner hidden" role="status" aria-live="polite">
+        <span id="alert-text">Operation completed.</span>
+        <button id="close-alert-btn" class="close-banner-btn" aria-label="Close Alert">&times;</button>
+      </div>
+
+      <!-- Workspace Grid -->
+      <div class="workspace-grid">
+        <!-- Left: Booking Form & Active Reservations -->
+        <div class="left-column">
+          <!-- Card: Book Appointment Slot -->
+          <section class="card" aria-label="Book Reservation Form">
+            <div class="card-header">
+              <h2 class="card-title">Book Patient Appointment Slot (Unpaid)</h2>
+            </div>
+            <form id="book-form">
+              <div class="form-group">
+                <label for="patient-name" class="form-label">Patient Full Name</label>
+                <input type="text" id="patient-name" class="form-input" placeholder="e.g., Arthur Dent" required autocomplete="name">
+              </div>
+              <div class="form-group">
+                <label for="patient-phone" class="form-label">Patient Mobile Number</label>
+                <input type="tel" id="patient-phone" class="form-input" placeholder="e.g., +1 (555) 012-3456" required autocomplete="tel">
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+                <div class="form-group">
+                  <label for="book-dept" class="form-label">Specialty Department</label>
+                  <select id="book-dept" class="form-input" required>
+                    <!-- Dynamically populated -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="book-doctor" class="form-label">Select Doctor</label>
+                  <select id="book-doctor" class="form-input" required>
+                    <option value="" disabled selected>Select Department First</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="btn-book">Create Unpaid Reservation</button>
+            </form>
+          </section>
+
+          <!-- Card: Unpaid Booked Reservations List -->
+          <section class="card" aria-label="Unpaid Reservations Table">
+            <div class="card-header">
+              <h2 class="card-title">Unpaid Booked Reservations</h2>
+            </div>
+            <div class="data-table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Patient Name</th>
+                    <th scope="col">Department</th>
+                    <th scope="col">Doctor Assigned</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="reservations-table-body">
+                  <!-- Dynamically populated via appointment-reservations.js -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- Right: Ticket Preview -->
+        <section class="card" aria-label="Active Ticket Preview">
+          <div class="card-header">
+            <h2 class="card-title">Active Queue Ticket</h2>
+          </div>
+          <div class="ticket-preview-box">
+            <div id="ticket-preview" class="ticket hidden" aria-live="polite">
+              <div class="ticket-header">Appointment Queue Ticket</div>
+              <div class="ticket-number" id="ticket-num">#1</div>
+              <div class="ticket-detail">Doctor: <strong id="ticket-doc">Dr. Gregory House</strong></div>
+              <div class="ticket-detail">Dept: <strong id="ticket-department">Cardiology</strong></div>
+              <div class="ticket-detail">Patient: <strong id="ticket-patient">John Doe</strong></div>
+              <div class="ticket-detail">Est. Wait: <strong id="ticket-wait">0 mins</strong></div>
+              <div class="ticket-footer" id="ticket-time">09:42 AM | Today</div>
+            </div>
+            <div id="ticket-placeholder" class="text-muted" style="text-align: center;">
+              Process payment for an unpaid reservation on the left to issue a live queue ticket.
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Modal Checkout Popup -->
+    <div id="payment-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-content">
+        <h2 id="modal-title" class="modal-title">Confirm Consultation Payment</h2>
+        <div class="modal-body">
+          <div>Patient: <strong id="modal-patient-name">Arthur Dent</strong></div>
+          <div>Doctor: <strong id="modal-doctor-name">Dr. Gregory House</strong></div>
+          <div>Charge Amount: <strong style="color: var(--color-primary); font-size: var(--font-size-lg);">$150.00</strong></div>
+          <div class="form-group" style="margin-top: var(--spacing-sm);">
+            <label for="modal-payment-mode" class="form-label" style="font-weight: bold;">Select Payment Method</label>
+            <select id="modal-payment-mode" class="form-input">
+              <option value="Card" selected>Card / Credit</option>
+              <option value="Cash">Cash</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-confirm-payment" class="modal-btn modal-btn-confirm">Process & Check In</button>
+          <button id="btn-cancel-payment" class="modal-btn modal-btn-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/appointment-reservations.js"></script>
+  <script>
+    // Live date update
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  </script>
+</body>
+</html>

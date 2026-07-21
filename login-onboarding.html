@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login & Onboarding - HMS SaaS</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/login-onboarding.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Brand Sidebar Section (Saturated 30-60% brand area) -->
+    <aside class="brand-sidebar" aria-label="Brand Information">
+      <div class="brand-header">
+        <div class="logo-icon" aria-hidden="true">+</div>
+        <span class="logo-text">Aegis HMS</span>
+      </div>
+      <div class="brand-body">
+        <h1 class="brand-headline">Multi-Tenant Clinical Operations & Queue Platform</h1>
+        <p class="brand-description">
+          A modern, unified medical system enabling clinics and large hospitals to seamlessly isolate patients, tokens,
+          and billing records under one platform.
+        </p>
+      </div>
+      <div class="brand-footer">
+        &copy; 2026 Aegis Health Systems Inc. All rights reserved.
+      </div>
+    </aside>
+
+    <!-- Interactive Form Section -->
+    <main class="form-section">
+      <div class="card">
+        <!-- Alert Notification Hook -->
+        <div id="alert-container" aria-live="polite"></div>
+
+        <!-- Navigation Tabs -->
+        <nav class="tab-group" aria-label="Sign In or Register">
+          <button id="login-tab" class="tab-btn active" aria-selected="true" role="tab">Staff Login</button>
+          <button id="register-tab" class="tab-btn" aria-selected="false" role="tab">Register Hospital</button>
+          <button id="register-staff-tab" class="tab-btn" aria-selected="false" role="tab">Register Staff</button>
+        </nav>
+
+        <!-- Login Form Panel -->
+        <div id="login-panel" role="tabpanel" aria-labelledby="login-tab">
+          <form id="login-form">
+            <div class="form-group">
+              <label for="login-email" class="form-label">Email Address</label>
+              <input type="email" id="login-email" class="form-input" placeholder="name@hospital.com" required
+                autocomplete="email">
+            </div>
+            <div class="form-group">
+              <label for="login-password" class="form-label">Password</label>
+              <input type="password" id="login-password" class="form-input" placeholder="••••••••" required
+                autocomplete="current-password">
+            </div>
+            <button type="submit" class="submit-btn">Sign In to Dashboard</button>
+          </form>
+
+          <!-- Helper instructions for testing -->
+          <details class="demo-credentials">
+            <summary>Click to view Quick-Login Demo Accounts</summary>
+            <ul class="demo-list">
+              <li>
+                <span>Super Admin:</span>
+                <button type="button" onclick="fillCredential('superadmin@hms.com', 'admin')"
+                  class="a">superadmin@hms.com <code>(pw: admin)</code></button>
+              </li>
+              <li>
+                <span>Hospital Admin:</span>
+                <button type="button" onclick="fillCredential('admin@citygeneral.com', 'admin')"
+                  class="a">admin@citygeneral.com <code>(pw: admin)</code></button>
+              </li>
+              <li>
+                <span>Doctor:</span>
+                <button type="button" onclick="fillCredential('doctor@citygeneral.com', 'admin')"
+                  class="a">doctor@citygeneral.com <code>(pw: admin)</code></button>
+              </li>
+              <li>
+                <span>Receptionist:</span>
+                <button type="button" onclick="fillCredential('receptionist@citygeneral.com', 'admin')"
+                  class="a">receptionist@citygeneral.com <code>(pw: admin)</code></button>
+              </li>
+            </ul>
+          </details>
+        </div>
+
+        <!-- Register Onboarding Panel -->
+        <div id="register-panel" class="hidden" role="tabpanel" aria-labelledby="register-tab">
+          <form id="register-form">
+            <div class="form-group">
+              <label for="hosp-name" class="form-label">Hospital / Clinic Name</label>
+              <input type="text" id="hosp-name" class="form-input" placeholder="e.g., General Hospital" required>
+            </div>
+            <div class="form-group">
+              <label for="hosp-address" class="form-label">Street Address</label>
+              <input type="text" id="hosp-address" class="form-input" placeholder="e.g., 123 Health Ave" required>
+            </div>
+            <div class="form-group">
+              <label for="hosp-location" class="form-label">City, State</label>
+              <input type="text" id="hosp-location" class="form-input" placeholder="e.g., New York, NY" required>
+            </div>
+            <div class="form-group">
+              <label for="hosp-plan" class="form-label">Select Subscription Tier</label>
+              <select id="hosp-plan" class="form-input">
+                <option value="Basic">Basic - Up to 5 Doctors (Free Trial)</option>
+                <option value="Pro">Pro - Up to 25 Doctors (299/mo)</option>
+                <option value="Enterprise" selected>Enterprise - Unlimited (799/mo)</option>
+              </select>
+            </div>
+            <button type="submit" class="submit-btn">Register & Start Setup</button>
+          </form>
+          <p class="helper-text">Registration submits your tenant profile. A Super Admin will review and authorize your
+            account shortly.</p>
+        </div>
+
+        <!-- Register Staff Panel -->
+        <div id="register-staff-panel" class="hidden" role="tabpanel" aria-labelledby="register-staff-tab">
+          <form id="register-staff-form">
+            <div class="form-group">
+              <label for="staff-name" class="form-label">Full Name</label>
+              <input type="text" id="staff-name" class="form-input" placeholder="e.g., Dr. John Watson" required>
+            </div>
+            <div class="form-group">
+              <label for="staff-email" class="form-label">Email Address</label>
+              <input type="email" id="staff-email" class="form-input" placeholder="name@hospital.com" required autocomplete="email">
+            </div>
+            <div class="form-group">
+              <label for="staff-password" class="form-label">Password</label>
+              <input type="password" id="staff-password" class="form-input" placeholder="••••••••" required autocomplete="new-password">
+            </div>
+            <div class="form-group">
+              <label for="staff-role" class="form-label">Select Role</label>
+              <select id="staff-role" class="form-input">
+                <option value="Hospital Admin">Hospital Admin</option>
+                <option value="Receptionist">Receptionist</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="staff-hospital" class="form-label">Select Hospital</label>
+              <select id="staff-hospital" class="form-input" required>
+                <option value="" disabled selected>Select your hospital...</option>
+              </select>
+            </div>
+            <button type="submit" class="submit-btn">Register Staff & Request Approval</button>
+          </form>
+          <p class="helper-text">Your request will be sent to the Super Admin. You can log in once approved.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/login-onboarding.js"></script>
+</body>
+
+</html>

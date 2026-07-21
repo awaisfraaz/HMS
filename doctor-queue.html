@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Queue Panel - HMS</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/doctor-queue.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" aria-label="Sidebar Menu">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo" aria-hidden="true">+</div>
+        <span class="sidebar-title">Aegis Doctor</span>
+      </div>
+      <nav aria-label="Main Navigation">
+        <ul class="sidebar-menu">
+          <li class="menu-item active" role="link" aria-current="page">My Queue Panel</li>
+          <li class="menu-item" role="link" onclick="window.location.href='live-queue.html'">Public Queue Board</li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <span class="text-muted">Welcome,</span>
+          <div id="doc-username" class="text-light">Doctor</div>
+        </div>
+        <button id="logout-btn" class="logout-btn">Log Out</button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header class="page-header">
+        <h1 class="page-title" id="doctor-title">Dr. Gregory House</h1>
+        <div class="doctor-badge" id="doctor-sub-badge">Cardiology - Room 302</div>
+      </header>
+
+      <!-- Alert Notification Banner -->
+      <div id="alert-banner" class="alert-banner hidden" role="status" aria-live="polite">
+        <span id="alert-text">Consultation saved.</span>
+        <button id="close-alert-btn" class="close-banner-btn" aria-label="Close Alert">&times;</button>
+      </div>
+
+      <!-- Stats Grid -->
+      <section class="metrics-grid" aria-label="Queue Metrics">
+        <div class="metric-card">
+          <span class="metric-title">Total Patients Today</span>
+          <div class="metric-value" id="stat-total-queue">0</div>
+        </div>
+        <div class="metric-card">
+          <span class="metric-title">Completed Consultations</span>
+          <div class="metric-value" id="stat-completed">0</div>
+        </div>
+        <div class="metric-card">
+          <span class="metric-title">Patients Waiting</span>
+          <div class="metric-value" id="stat-waiting">0</div>
+        </div>
+      </section>
+
+      <!-- Workspace Grid Layout -->
+      <div class="workspace-grid">
+        <!-- Left: Active Patients Table -->
+        <section class="card" aria-label="Today's Patient Queue">
+          <div class="card-header">
+            <h2 class="card-title">Patient Appointment Queue</h2>
+          </div>
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">Token</th>
+                  <th scope="col">Patient Name</th>
+                  <th scope="col">Issued Time</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="queue-table-body">
+                <!-- Dynamically populated via doctor-queue.js -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Right: Active Patient Consultation Workspace -->
+        <section class="card" aria-label="Consultation Note Workspace">
+          <div class="card-header">
+            <h2 class="card-title">Active Consultation Note</h2>
+          </div>
+          
+          <!-- Consultation form (shown when patient is in-progress) -->
+          <div id="consultation-workspace" class="hidden">
+            <div class="consultation-details">
+              <div class="detail-row">
+                <span>Patient:</span>
+                <strong id="active-patient-name">John Doe</strong>
+              </div>
+              <div class="detail-row">
+                <span>Token Number:</span>
+                <strong id="active-patient-token">#1</strong>
+              </div>
+            </div>
+            
+            <form id="save-notes-form">
+              <div class="form-group">
+                <label for="notes-textarea" class="form-label">Diagnosis & Prescription Notes</label>
+                <textarea id="notes-textarea" class="notes-textarea" placeholder="Add diagnosis, symptoms, and medical prescription details here..." required></textarea>
+              </div>
+              <button type="submit" class="save-btn">Save Consultation Note & Complete</button>
+            </form>
+          </div>
+
+          <!-- Placeholder when no patient is currently called -->
+          <div id="workspace-placeholder" class="text-muted" style="text-align: center; padding: var(--spacing-xl) 0;">
+            No active patient under consultation. Call a patient from the queue table on the left to activate this note workspace.
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/doctor-queue.js"></script>
+</body>
+</html>
