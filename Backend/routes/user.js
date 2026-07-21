@@ -59,6 +59,7 @@ router.post("/login", async (req, res) => {
 
   const loggeduser = await User.findById(user._id).select("name email role hospital_id");
 
+  /** @type {import('express').CookieOptions} */
   const options = {
     httpOnly: true,
     secure: true,
@@ -109,9 +110,11 @@ router.post('/logout', verifyjwt, async (req, res) => {
   try {
     await User.findByIdAndUpdate(req.user._id, { refreshToken: "" });
 
+    /** @type {import('express').CookieOptions} */
     const options = {
       httpOnly: true,
       secure: true,
+      sameSite: "none"
     };
     res.clearCookie("accesstoken", options);
     res.clearCookie("refreshtoken", options);
@@ -151,9 +154,11 @@ router.post('/refreshtoken', async (req, res) => {
       user._id,
     );
     const loggeduser = await User.findById(user._id).select("name email role hospital_id");
+    /** @type {import('express').CookieOptions} */
     const options = {
       httpOnly: true,
       secure: true,
+      sameSite: "none"
     };
     res
       .status(200)
