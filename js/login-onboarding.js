@@ -269,4 +269,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('login-email').value = email;
     document.getElementById('login-password').value = password;
   };
+
+  // Google OAuth Login Redirect
+  const googleLoginBtn = document.getElementById('google-login-btn');
+  if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', () => {
+      // Initiates OAuth 2.0 flow via backend
+      window.location.href = `${HMS_CONFIG.API_BASE_URL}api/v1/user/google`;
+    });
+  }
 });

@@ -3,7 +3,7 @@ const HMS_CONFIG = {
     // Automatically detects if running locally, otherwise uses the deployed backend URL.
     API_BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
         ? 'http://localhost:3000/'
-        : 'https://hms-backend-jet-six.vercel.app/'
+        : 'https://hms-backend-omega.vercel.app/'
 };
 
 // Global authenticated fetch wrapper that handles automatic silent token refreshing
