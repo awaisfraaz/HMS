@@ -6,6 +6,14 @@ const cors = require("cors");
 dotenv.config();
 const dbconnect = require("./db/db");
 const cookieParser = require("cookie-parser");
+
+const userrouter = require("./routes/user");
+const hospitalrouter = require("./routes/hospital");
+const doctorrouter = require("./routes/doctor");
+const tokenrouter = require("./routes/token");
+const billrouter = require("./routes/bill");
+const plansrouter = require("./routes/plans");
+
 const app = express();
 
 app.use(cors({
@@ -34,31 +42,12 @@ app.use(async (req, res, next) => {
     }
 });
 
+// Root health check endpoint
 app.get("/", (req, res) => {
     res.json({ status: "online", message: "HMS Backend API is running successfully!" });
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Promise Rejection:', reason);
-});
-process.on('uncaughtException', (error) => {
-    console.error('Uncaught Exception thrown:', error);
-});
-
-const PORT = parseInt(process.env.PORT || "3000", 10);
-
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server is running on port ${PORT} (host: 0.0.0.0)`);
-});
-
-// routes
-const userrouter = require("./routes/user");
-const hospitalrouter = require("./routes/hospital");
-const doctorrouter = require("./routes/doctor");
-const tokenrouter = require("./routes/token");
-const billrouter = require("./routes/bill");
-const plansrouter = require("./routes/plans");
-
+// API Routes (Mounted BEFORE app.listen & module.exports)
 app.use("/api/v1/user", userrouter);
 app.use("/api/v1/hospital", hospitalrouter);
 app.use("/api/v1/doctor", doctorrouter);
@@ -75,5 +64,20 @@ app.use((err, req, res, next) => {
         message: err.message || "Internal server error"
     });
 });
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Promise Rejection:', reason);
+});
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception thrown:', error);
+});
+
+// Only listen on port when executed directly (e.g. node server.js locally), not when imported by Vercel serverless
+if (require.main === module) {
+    const PORT = parseInt(process.env.PORT || "3000", 10);
+    app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Server is running on port ${PORT} (host: 0.0.0.0)`);
+    });
+}
 
 module.exports = app;
