@@ -391,8 +391,8 @@ router.post('/complete-profile', verifyjwt, async (req, res) => {
         }
 
         let user = await User.findById(req.user._id);
-        if (!user) {
-            user = await User.findOne({ email });
+        if (!user && (email || req.user?.email)) {
+            user = await User.findOne({ email: email || req.user?.email });
         }
         if (!user) {
             return res.status(404).json({ message: "User account not found" });
