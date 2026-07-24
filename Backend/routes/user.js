@@ -341,11 +341,6 @@ router.get('/google/callback', async (req, res) => {
             await user.save();
         }
 
-        // If user is brand new or missing role/hospital, redirect to complete-profile onboarding
-        if (!user.role || !user.hospital_id) {
-            return res.redirect(`${FRONTEND_URL}complete-profile.html?email=${encodeURIComponent(userInfo.email)}&name=${encodeURIComponent(userInfo.name || '')}`);
-        }
-
         // Generate Access & Refresh tokens
         const tokens = await generateaccessandrefreshtoken(user._id);
         if (!tokens) {
@@ -359,6 +354,13 @@ router.get('/google/callback', async (req, res) => {
             secure: true,
             sameSite: "none",
         };
+
+        // If user is brand new or missing role/hospital, redirect to complete-profile onboarding with tokens
+        if (!user.role || !user.hospital_id) {
+            return res.cookie("accesstoken", accesstoken, options)
+                      .cookie("refreshtoken", refreshtoken, options)
+                      .redirect(`${FRONTEND_URL}complete-profile.html?email=${encodeURIComponent(userInfo.email)}&name=${encodeURIComponent(userInfo.name || '')}&accesstoken=${accesstoken}&refreshtoken=${refreshtoken}`);
+        }
 
         // Determine destination dashboard based on role
         let targetDashboard = "login-onboarding.html";
@@ -381,27 +383,26 @@ router.get('/google/callback', async (req, res) => {
 router.post('/complete-profile', verifyjwt, async (req, res) => {
     try {
         const { email, name, role, hospital_id } = req.body;
-        if (!email || !name || !role || !hospital_id) {
+        if (!name || !role || !hospital_id) {
             return res.status(400).json({ message: "Please fill all the required fields" });
         }
+        if (role === "Doctor") {
+            return res.status(400).json({ message: "Doctor accounts can only be registered directly by a Hospital Admin." });
+        }
 
-        let user = await User.findOne({ email });
+        let user = await User.findById(req.user._id);
         if (!user) {
-            user = new User({
-                name,
-                email,
-                role,
-                hospital_id,
-                authProvider: "google",
-                status: "Approved"
-            });
-        } else {
-            user.name = name;
-            user.role = role;
-            user.hospital_id = hospital_id;
-            if (!user.status || user.status === "Pending") {
-                user.status = "Approved";
-            }
+            user = await User.findOne({ email });
+        }
+        if (!user) {
+            return res.status(404).json({ message: "User account not found" });
+        }
+
+        user.name = name;
+        user.role = role;
+        user.hospital_id = hospital_id;
+        if (!user.status || user.status === "Pending") {
+            user.status = "Approved";
         }
 
         await user.save();
