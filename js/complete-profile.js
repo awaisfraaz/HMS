@@ -65,8 +65,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    if (role === 'Doctor') {
+      showAlert('Doctor accounts can only be registered directly by a Hospital Admin.', 'danger');
+      return;
+    }
+
     try {
-      const response = await fetch(`${HMS_CONFIG.API_BASE_URL}api/v1/user/complete-profile`, {
+      const response = await hmsFetch(`${HMS_CONFIG.API_BASE_URL}api/v1/user/complete-profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
