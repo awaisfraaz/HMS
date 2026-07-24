@@ -231,41 +231,6 @@
   margin-top: var(--spacing-md);
 }
 
-.demo-credentials {
-  margin-top: var(--spacing-lg);
-  border-top: 1px dashed var(--color-border);
-  padding-top: var(--spacing-md);
-}
-
-.demo-credentials summary {
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--color-primary);
-  cursor: pointer;
-}
-
-.demo-list {
-  list-style: none;
-  font-size: var(--font-size-xs);
-  margin-top: var(--spacing-sm);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.demo-list li {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background-color: var(--color-bg);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  display: flex;
-  justify-content: space-between;
-}
-
-.demo-list code {
-  font-family: monospace;
-  font-weight: 600;
-}
 
 .hidden {
   display: none !important;

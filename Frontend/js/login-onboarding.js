@@ -263,12 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
     alertContainer.innerHTML = '';
   }
 
-  // Pre-fill demo credentials when clicked
-  window.fillCredential = function (email, password) {
-    loginTab.click();
-    document.getElementById('login-email').value = email;
-    document.getElementById('login-password').value = password;
-  };
 
   // Google OAuth Login Redirect
   const googleLoginBtn = document.getElementById('google-login-btn');
