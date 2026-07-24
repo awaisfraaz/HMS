@@ -3,8 +3,32 @@ const HMS_CONFIG = {
     // Automatically detects if running locally, otherwise uses the deployed backend URL.
     API_BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
         ? 'http://localhost:3000/'
-        : 'https://hms-backend-omega.vercel.app/'
+        : 'https://hms-backend-jet-six.vercel.app/'
 };
+
+// Automatically extract tokens from OAuth redirect URL query string if present
+(function handleOAuthRedirectTokens() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const accessToken = params.get('accesstoken');
+        const refreshToken = params.get('refreshtoken');
+
+        if (accessToken) {
+            localStorage.setItem('hms_access_token', accessToken);
+        }
+        if (refreshToken) {
+            localStorage.setItem('hms_refresh_token', refreshToken);
+        }
+
+        // Clean query string from browser address bar
+        if (accessToken || refreshToken) {
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+        }
+    } catch (e) {
+        console.error("Error processing OAuth redirect tokens:", e);
+    }
+})();
 
 // Global authenticated fetch wrapper that handles automatic silent token refreshing
 async function hmsFetch(url, options = {}) {
