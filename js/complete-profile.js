@@ -6,10 +6,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   const profileForm = document.getElementById('complete-profile-form');
   const alertContainer = document.getElementById('alert-container');
 
-  // Parse query parameters from URL (e.g. ?email=user@gmail.com&name=Alex%20Morgan)
+  // Parse query parameters or JWT token for email & name
   const urlParams = new URLSearchParams(window.location.search);
-  const emailParam = urlParams.get('email') || localStorage.getItem('hms_google_pending_email') || '';
-  const nameParam = urlParams.get('name') || localStorage.getItem('hms_google_pending_name') || '';
+  let emailParam = urlParams.get('email') || localStorage.getItem('hms_google_pending_email') || '';
+  let nameParam = urlParams.get('name') || localStorage.getItem('hms_google_pending_name') || '';
+
+  if (!emailParam) {
+    const token = localStorage.getItem('hms_access_token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload && payload.email) emailParam = payload.email;
+      } catch (e) {
+        console.warn("Could not decode access token payload:", e);
+      }
+    }
+  }
 
   if (emailParam) emailInput.value = emailParam;
   if (nameParam) nameInput.value = nameParam;
@@ -56,11 +68,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     clearAlerts();
 
     const name = nameInput.value.trim();
-    const email = emailInput.value.trim();
+    const email = emailInput.value.trim() || emailParam;
     const role = roleSelect.value;
     const hospital_id = hospitalSelect.value;
 
-    if (!name || !email || !role || !hospital_id) {
+    if (!name || !role || !hospital_id) {
       showAlert('Please fill in all required fields.', 'danger');
       return;
     }
