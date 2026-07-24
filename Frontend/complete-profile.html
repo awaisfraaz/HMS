@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Profile - HMS SaaS</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/login-onboarding.css">
+  <link rel="stylesheet" href="css/complete-profile.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Brand Sidebar -->
+    <aside class="brand-sidebar" aria-label="Brand Information">
+      <div class="brand-header">
+        <div class="logo-icon" aria-hidden="true">+</div>
+        <span class="logo-text">Aegis HMS</span>
+      </div>
+      <div class="brand-body">
+        <h1 class="brand-headline">Almost There! Complete Your Staff Profile</h1>
+        <p class="brand-description">
+          You signed in successfully with Google. Please select your clinical role and hospital affiliation to request access.
+        </p>
+      </div>
+      <div class="brand-footer">
+        &copy; 2026 Aegis Health Systems Inc. All rights reserved.
+      </div>
+    </aside>
+
+    <!-- Interactive Onboarding Form Section -->
+    <main class="form-section">
+      <div class="card">
+        <!-- Alert Notification Hook -->
+        <div id="alert-container" aria-live="polite"></div>
+
+        <div class="profile-header">
+          <h2 class="profile-title">Complete Account Setup</h2>
+          <p class="profile-subtitle">Assign your hospital and operational role to activate your account.</p>
+        </div>
+
+        <form id="complete-profile-form">
+          <div class="form-group">
+            <label for="profile-name" class="form-label">Full Name</label>
+            <input type="text" id="profile-name" class="form-input" placeholder="e.g., Dr. Alex Morgan" required>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-email" class="form-label">Google Email</label>
+            <input type="email" id="profile-email" class="form-input readonly-input" readonly>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-role" class="form-label">Select Your Role</label>
+            <select id="profile-role" class="form-input" required>
+              <option value="" disabled selected>Select operational role...</option>
+              <option value="Hospital Admin">Hospital Admin</option>
+              <option value="Doctor">Doctor</option>
+              <option value="Receptionist">Receptionist</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-hospital" class="form-label">Select Hospital</label>
+            <select id="profile-hospital" class="form-input" required>
+              <option value="" disabled selected>Loading hospitals...</option>
+            </select>
+          </div>
+
+          <button type="submit" class="submit-btn">Complete Setup & Request Approval</button>
+        </form>
+
+        <p class="helper-text">Once submitted, a Super Admin will review your role request.</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/complete-profile.js"></script>
+</body>
+
+</html>
