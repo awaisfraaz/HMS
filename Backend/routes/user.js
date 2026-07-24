@@ -280,4 +280,158 @@ router.post("/registerdoctor",verifyjwt, async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     } 
 })
+// GET /api/v1/user/google
+// Initiates the Google OAuth login process.
+router.get("/google", (req, res) => {
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({
+        client_id: process.env.GOOGLE_CLIENT_ID || "",
+        redirect_uri: process.env.GOOGLE_REDIRECT_URI || "",
+        response_type: "code",
+        scope: "openid email profile",
+        access_type: "offline",
+        prompt: "select_account"
+    }).toString()}`;
+
+    res.redirect(googleAuthUrl);
+});
+
+// GET /api/v1/user/google/callback
+router.get('/google/callback', async (req, res) => {
+    const FRONTEND_URL = "https://awaisfraaz.github.io/HMS/";
+    try {
+        const { code, error: authError } = req.query;
+        if (authError) {
+            return res.redirect(`${FRONTEND_URL}login-onboarding.html?error=${encodeURIComponent(String(authError))}`);
+        }
+        if (!code || typeof code !== "string") {
+            return res.redirect(`${FRONTEND_URL}login-onboarding.html?error=No authorization code provided`);
+        }
+
+        const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                code: String(code),
+                client_id: process.env.GOOGLE_CLIENT_ID || "",
+                client_secret: process.env.GOOGLE_CLIENT_SECRET || "",
+                redirect_uri: process.env.GOOGLE_REDIRECT_URI || "",
+                grant_type: "authorization_code",
+            }),
+        });
+
+        const tokenData = await tokenResponse.json();
+        if (tokenData.error) {
+            return res.redirect(`${FRONTEND_URL}login-onboarding.html?error=${encodeURIComponent(tokenData.error_description || tokenData.error)}`);
+        }
+
+        const userInfoResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: { Authorization: `Bearer ${tokenData.access_token}` },
+        });
+
+        const userInfo = await userInfoResponse.json();
+        let user = await User.findOne({ email: userInfo.email });
+
+        if (!user) {
+            user = new User({
+                name: userInfo.name || "Google User",
+                email: userInfo.email,
+                googleId: userInfo.sub,
+                authProvider: "google",
+                status: "Pending"
+            });
+            await user.save();
+        }
+
+        // If user is brand new or missing role/hospital, redirect to complete-profile onboarding
+        if (!user.role || !user.hospital_id) {
+            return res.redirect(`${FRONTEND_URL}complete-profile.html?email=${encodeURIComponent(userInfo.email)}&name=${encodeURIComponent(userInfo.name || '')}`);
+        }
+
+        // Generate Access & Refresh tokens
+        const tokens = await generateaccessandrefreshtoken(user._id);
+        if (!tokens) {
+            return res.redirect(`${FRONTEND_URL}login-onboarding.html?error=Failed to generate session tokens`);
+        }
+        const { accesstoken, refreshtoken } = tokens;
+
+        /** @type {import('express').CookieOptions} */
+        const options = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+        };
+
+        // Determine destination dashboard based on role
+        let targetDashboard = "login-onboarding.html";
+        if (user.role === "Super Admin") targetDashboard = "super-admin-dashboard.html";
+        else if (user.role === "Hospital Admin") targetDashboard = "hospital-admin-dashboard.html";
+        else if (user.role === "Doctor") targetDashboard = "doctor-queue.html";
+        else if (user.role === "Receptionist") targetDashboard = "token-generation.html";
+
+        res.cookie("accesstoken", accesstoken, options)
+           .cookie("refreshtoken", refreshtoken, options)
+           .redirect(`${FRONTEND_URL}${targetDashboard}?accesstoken=${accesstoken}&refreshtoken=${refreshtoken}`);
+
+    } catch (error) {
+        console.error("Google OAuth Callback Error:", error);
+        res.redirect(`https://awaisfraaz.github.io/HMS/login-onboarding.html?error=Internal server error`);
+    }
+});
+
+// POST /api/v1/user/complete-profile
+router.post('/complete-profile', async (req, res) => {
+    try {
+        const { email, name, role, hospital_id } = req.body;
+        if (!email || !name || !role || !hospital_id) {
+            return res.status(400).json({ message: "Please fill all the required fields" });
+        }
+
+        let user = await User.findOne({ email });
+        if (!user) {
+            user = new User({
+                name,
+                email,
+                role,
+                hospital_id,
+                authProvider: "google",
+                status: "Approved"
+            });
+        } else {
+            user.name = name;
+            user.role = role;
+            user.hospital_id = hospital_id;
+            if (!user.status || user.status === "Pending") {
+                user.status = "Approved";
+            }
+        }
+
+        await user.save();
+
+        const tokens = await generateaccessandrefreshtoken(user._id);
+        const accesstoken = tokens ? tokens.accesstoken : null;
+        const refreshtoken = tokens ? tokens.refreshtoken : null;
+
+        /** @type {import('express').CookieOptions} */
+        const options = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none"
+        };
+
+        const loggeduser = await User.findById(user._id).select("name email role hospital_id status");
+
+        res.status(200)
+           .cookie("accesstoken", accesstoken, options)
+           .cookie("refreshtoken", refreshtoken, options)
+           .json({
+               message: "Profile completed successfully",
+               user: loggeduser,
+               accesstoken,
+               refreshtoken
+           });
+    } catch (error) {
+        console.error("Complete Profile Error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
 module.exports = router;
