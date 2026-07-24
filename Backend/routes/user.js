@@ -31,50 +31,49 @@ router.get("/", (req, res) => {
   res.send("Hello World!");
 });
 router.post("/login", async (req, res) => {
-  // email and password
-  // check refesh token
-  // access and resfresh token
-  // send in cookies
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const isPasswordValid = await user.isPasswordValid(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+    if (!user.checkisvaliduser()) {
+      return res.status(403).json({ message: "User is not verified" });
+    }
 
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
-  // mongo operators usage pass array object
-  const user = await User.findOne({ email });
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
-  }
-  const isPasswordValid = await user.isPasswordValid(password);
-  if (!isPasswordValid) {
-    return res.status(401).json({ message: "Invalid password" });
-  }
-  if (!user.checkisvaliduser()) {
-    return res.status(401).json({ message: "User is not verified" });
-  }
+    const { accesstoken, refreshtoken } = await generateaccessandrefreshtoken(
+      user._id,
+    );
 
-  const { accesstoken, refreshtoken } = await generateaccessandrefreshtoken(
-    user._id,
-  );
+    const loggeduser = await User.findById(user._id).select("name email role hospital_id");
 
-  const loggeduser = await User.findById(user._id).select("name email role hospital_id");
-
-  /** @type {import('express').CookieOptions} */
-  const options = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none"
-  };
-  res
-    .status(200)
-    .cookie("accesstoken", accesstoken, options)
-    .cookie("refreshtoken", refreshtoken, options)
-    .json({
-      message: "Login successful",
-      user: loggeduser,
-      accesstoken,
-      refreshtoken,
-    });
+    /** @type {import('express').CookieOptions} */
+    const options = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none"
+    };
+    res
+      .status(200)
+      .cookie("accesstoken", accesstoken, options)
+      .cookie("refreshtoken", refreshtoken, options)
+      .json({
+        message: "Login successful",
+        user: loggeduser,
+        accesstoken,
+        refreshtoken,
+      });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 router.post("/register", async (req, res) => {
@@ -179,7 +178,7 @@ router.post('/refreshtoken', async (req, res) => {
 router.get("/allusers",verifyjwt, async (req, res) => {
     try {
       if(req.user.role !== "Super Admin"){
-        return res.status(401).json({ message: "Unauthorized. Only Super Admin can get all users" });
+        return res.status(403).json({ message: "Forbidden. Only Super Admin can get all users" });
       }
         const users = await User.find().select('-password -refreshToken');
         res.status(200).json({ users });
@@ -193,9 +192,9 @@ router.post("/updateuserstatus",verifyjwt, async (req, res) => {
     try {
         const {id,status} = req.body;
         if (req.user.role !== "Super Admin") {
-            return res.status(401).json({ message: "Unauthorized. Only Super Admin can update user status" });
+            return res.status(403).json({ message: "Forbidden. Only Super Admin can update user status" });
         }
-        const user = await User.findByIdAndUpdate(id, { status });
+        const user = await User.findByIdAndUpdate(id, { status }, { new: true }).select('-password -refreshToken');
         res.status(200).json({ user });
       
     } catch (error) {
@@ -207,7 +206,7 @@ router.delete("/deleteuser",verifyjwt, async (req, res) => {
     try {
         const {id} = req.body;
         if (req.user.role !== "Super Admin") {
-            return res.status(401).json({ message: "Unauthorized. Only Super Admin can delete user" });
+            return res.status(403).json({ message: "Forbidden. Only Super Admin can delete user" });
         }
         const user = await User.findByIdAndDelete(id).select("-password -refreshToken");
         res.status(200).json({ message: "User deleted successfully",user });
@@ -219,7 +218,7 @@ router.delete("/deleteuser",verifyjwt, async (req, res) => {
 router.get("/dashboardstats",verifyjwt, async (req, res) => {
     try {
         if(req.user.role !== "Super Admin"){
-            return res.status(401).json({ message: "Unauthorized. Only Super Admin can get dashboard stats" });
+            return res.status(403).json({ message: "Forbidden. Only Super Admin can get dashboard stats" });
         }
         const users = await User.find().select('-password -refreshToken');
         const stats = {
@@ -227,7 +226,7 @@ router.get("/dashboardstats",verifyjwt, async (req, res) => {
             activeUsers: users.filter(u => u.status === "Approved").length,
             pendingUsers: users.filter(u => u.status === "Pending").length
         }
-        const hospitals = await Hospital.find().select('-password -refreshToken');
+        const hospitals = await Hospital.find();
         const hospitalstats = {
             totalHospitals: hospitals.length,
             activeHospitals: hospitals.filter(h => h.status === "Approved").length,
@@ -242,8 +241,8 @@ router.get("/dashboardstats",verifyjwt, async (req, res) => {
 router.post("/registerdoctor",verifyjwt, async (req, res) => {
     try {
         const {name,email,password,speciality,status,schedule,room,consultationfee} = req.body;
-        if (req.user.role !== "Hospital Admin" && req.user.role !== "Super Admin") {
-            return res.status(401).json({ message: "Unauthorized. Only Hospital Admin or Super Admin can register doctor" });
+        if (req.user.role !== "Hospital Admin") {
+            return res.status(403).json({ message: "Forbidden. Only Hospital Admin can register doctors" });
         }
         const hospital_id = req.user.hospital_id;
         const user = await User.findOne({ email });
@@ -379,7 +378,7 @@ router.get('/google/callback', async (req, res) => {
 });
 
 // POST /api/v1/user/complete-profile
-router.post('/complete-profile', async (req, res) => {
+router.post('/complete-profile', verifyjwt, async (req, res) => {
     try {
         const { email, name, role, hospital_id } = req.body;
         if (!email || !name || !role || !hospital_id) {

@@ -36,6 +36,6 @@ const Doctorschema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
-})
+}, { timestamps: true })
 const Doctor = mongoose.model("Doctor", Doctorschema);
 module.exports = Doctor;

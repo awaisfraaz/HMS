@@ -6,11 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  const hospitalId = currentUser.hospitalId;
+  const hospitalId = currentUser.hospital_id || currentUser.hospitalId;
   const hospital = HMS_DB.getHospitalById(hospitalId);
 
   // Set Hospital Title
-  document.getElementById('hospital-title').textContent = hospital.name;
+  document.getElementById('hospital-title').textContent = hospital ? hospital.name : 'Hospital';
   document.getElementById('receptionist-username').textContent = currentUser.name;
 
   // DOM elements

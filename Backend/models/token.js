@@ -7,11 +7,11 @@ const tokenschema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    hospitalId: {
+    hospital_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Hospital"
     },
-    doctorId: {
+    doctor_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Doctor"
     },

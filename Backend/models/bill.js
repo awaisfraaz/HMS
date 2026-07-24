@@ -2,11 +2,11 @@ const mongoose = require("mongoose");
 const BillSchema = new mongoose.Schema({
 
   
-    hospitalId: {
+    hospital_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Hospital"
     },
-    patientId: {
+    patient_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Patient"
     },

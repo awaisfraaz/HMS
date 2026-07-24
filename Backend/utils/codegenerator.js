@@ -1,8 +1,10 @@
+const crypto = require("crypto");
+
 const generatehospitalcode = (city) => {
-    const citycode = city.slice(0, 3)
-    const randomnumber = Math.floor(Math.random() * 1000)
-    const hospitalcode = citycode + randomnumber
-    return hospitalcode
+    const citycode = city.slice(0, 3).toUpperCase();
+    const uniquePart = crypto.randomBytes(3).toString("hex").toUpperCase();
+    const hospitalcode = `${citycode}-${uniquePart}`;
+    return hospitalcode;
 }
 
-module.exports = generatehospitalcode
+module.exports = generatehospitalcode;

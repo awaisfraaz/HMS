@@ -37,9 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadHospitalsData() {
     try {
-      const response = await fetch(`${HMS_CONFIG.API_BASE_URL}api/v1/hospital`, {
-        credentials: 'include'
-      });
+      const response = await hmsFetch(`${HMS_CONFIG.API_BASE_URL}api/v1/hospital`);
       if (response.ok) {
         const hospitals = await response.json();
         // Translate backend status to frontend status
@@ -53,13 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const token = localStorage.getItem('hms_access_token');
-      const response = await fetch(`${HMS_CONFIG.API_BASE_URL}api/v1/user/dashboardstats`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        credentials: 'include'
-      });
+      const response = await hmsFetch(`${HMS_CONFIG.API_BASE_URL}api/v1/user/dashboardstats`);
       if (response.ok) {
         cachedStats = await response.json();
       }

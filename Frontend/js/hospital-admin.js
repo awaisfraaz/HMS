@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  const hospitalId = currentUser.hospitalId;
+  const hospitalId = currentUser.hospital_id || currentUser.hospitalId;
   let hospital = null;
 
   async function initializeHospitalAdmin() {
@@ -86,8 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const freshHospital = hospital || HMS_DB.getHospitalById(hospitalId);
-    const tokens = HMS_DB.getTokens(hospitalId);
-    const bills = HMS_DB.getBills(hospitalId);
 
     // Fetch Today's Token Count from Backend
     let todayTokenCount = 0;
@@ -106,14 +104,29 @@ document.addEventListener('DOMContentLoaded', () => {
       todayTokenCount = tokens.length;
     }
 
+    // Fetch Bills from Backend for Revenue Calculation
+    let bills = [];
+    try {
+      const billsResponse = await hmsFetch(`${HMS_CONFIG.API_BASE_URL}api/v1/bill/all`);
+      if (billsResponse.ok) {
+        const data = await billsResponse.json();
+        bills = data.bills || [];
+      } else {
+        bills = HMS_DB.getBills(hospitalId);
+      }
+    } catch (err) {
+      console.error("Error fetching bills for hospital admin dashboard:", err);
+      bills = HMS_DB.getBills(hospitalId);
+    }
+
     // 1. Render Metrics
     statDoctorsEl.textContent = doctors.length;
     statTokensEl.textContent = todayTokenCount;
     
     // Revenue from paid bills
     const totalRev = bills
-      .filter(b => b.status === 'Paid')
-      .reduce((sum, b) => sum + b.total, 0);
+      .filter(b => b.paymentMode !== 'Pending' && b.status !== 'Unpaid')
+      .reduce((sum, b) => sum + (Number(b.total) || 0), 0);
     statRevenueEl.textContent = `$${totalRev.toLocaleString()}`;
     statPlanEl.textContent = freshHospital ? (freshHospital.subscriptiontier || freshHospital.plan || 'Basic') : 'Basic';
 

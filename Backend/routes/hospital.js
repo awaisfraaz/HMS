@@ -47,7 +47,7 @@ router.post('/register', async (req, res) => {
         })
         await hospital.save()
         // console.log(hospital)
-        return res.status(200).json({ message: "Hospital registered successfully" })
+        return res.status(201).json({ message: "Hospital registered successfully" })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ message: "Internal server error" })
@@ -57,7 +57,7 @@ router.post('/updatehospitalstatus',verifyjwt, async (req, res) => {
     try {
         const {id,status} = req.body;
         if(req.user.role !== "Super Admin"){
-            return res.status(401).json({ message: "Unauthorized Only Super Admin can update hospital status" })
+            return res.status(403).json({ message: "Forbidden. Only Super Admin can update hospital status" })
         }
         const hospital = await Hospital.findByIdAndUpdate(id, { status },{new:true});
         if(!hospital){
@@ -74,7 +74,7 @@ router.delete('/deletehospital', verifyjwt, async (req, res) => {
     try {
         const { id } = req.body;
         if (req.user.role !== "Super Admin") {
-            return res.status(401).json({ message: "Unauthorized. Only Super Admin can delete hospital" });
+            return res.status(403).json({ message: "Forbidden. Only Super Admin can delete hospital" });
         }
         const hospital = await Hospital.findByIdAndDelete(id);
         if (!hospital) {

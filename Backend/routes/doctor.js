@@ -22,17 +22,17 @@ router.get('/mytokens', verifyjwt, async (req, res) => {
         if (!doctor) {
             return res.status(404).json({ message: "Doctor profile not found." });
         }
-        const tokens = await Token.find({ doctorId: doctor._id });
+        const tokens = await Token.find({ doctor_id: doctor._id });
         res.status(200).json({ tokens });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
-router.get('/gettokes',verifyjwt,async (req,res)=>{
+router.get('/gettokens',verifyjwt,async (req,res)=>{
     try {
         const hospital_id = req.user.hospital_id;
-        const tokens = await Token.find({ hospitalId:hospital_id });
+        const tokens = await Token.find({ hospital_id });
         res.status(200).json({tokens});
     } 
     
@@ -51,7 +51,7 @@ router.post('/updatetoken',verifyjwt,async (req,res)=>{
         
         token.status = status || "Completed";
         if (doctorId) {
-            token.doctorId = doctorId;
+            token.doctor_id = doctorId;
             const doctor = await Doctor.findById(doctorId);
             if (doctor) {
                 token.doctorName = doctor.name;
@@ -67,7 +67,35 @@ router.post('/updatetoken',verifyjwt,async (req,res)=>{
         res.status(500).json({ message: "Internal server error" });
     }
 })
-// total tokens genrata total patients completed and patient waiting 
+
+// Update doctor status (Available / On Break / Unavailable)
+router.put('/:id/status', verifyjwt, async (req, res) => {
+    try {
+        const { status } = req.body;
+        if (!status || !["Available", "Unavailable", "On Break"].includes(status)) {
+            return res.status(400).json({ message: "Invalid status. Must be Available, Unavailable, or On Break" });
+        }
+
+        // Only Hospital Admin or the doctor themselves can update status
+        const doctor = await Doctor.findById(req.params.id);
+        if (!doctor) {
+            return res.status(404).json({ message: "Doctor not found" });
+        }
+
+        if (req.user.role !== "Hospital Admin" && doctor.user_id.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "Forbidden. Only Hospital Admin or the doctor can update status" });
+        }
+
+        doctor.status = status;
+        await doctor.save();
+        res.status(200).json({ doctor });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// total tokens generated, total patients completed and patients waiting 
 router.get('/doctordashboard',verifyjwt,async (req,res)=>{
     try {
         const doctor = await Doctor.findOne({ user_id: req.user._id });
@@ -75,10 +103,10 @@ router.get('/doctordashboard',verifyjwt,async (req,res)=>{
             return res.status(404).json({ message: "Doctor profile not found" });
         }
 
-        const totalTokens = await Token.countDocuments({ doctorId: doctor._id });
-        const completedPatients = await Token.countDocuments({ doctorId: doctor._id, status: "Completed" });
+        const totalTokens = await Token.countDocuments({ doctor_id: doctor._id });
+        const completedPatients = await Token.countDocuments({ doctor_id: doctor._id, status: "Completed" });
         const waitingPatients = await Token.countDocuments({ 
-            doctorId: doctor._id, 
+            doctor_id: doctor._id, 
             status: { $in: ["Waiting", "In Progress"] } 
         });
 

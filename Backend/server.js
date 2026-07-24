@@ -20,7 +20,7 @@ app.use(cors({
 
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
+app.use(express.static("Public"));
 app.use(cookieParser());
 
 // Middleware to ensure DB connection before executing API routes on Serverless
@@ -57,11 +57,23 @@ const hospitalrouter = require("./routes/hospital");
 const doctorrouter = require("./routes/doctor");
 const tokenrouter = require("./routes/token");
 const billrouter = require("./routes/bill");
+const plansrouter = require("./routes/plans");
 
 app.use("/api/v1/user", userrouter);
 app.use("/api/v1/hospital", hospitalrouter);
 app.use("/api/v1/doctor", doctorrouter);
 app.use("/api/v1/token", tokenrouter);
 app.use("/api/v1/bill", billrouter);
+app.use("/api/v1/plans", plansrouter);
+
+// Global error handling middleware
+app.use((err, req, res, next) => {
+    console.error("Unhandled Error:", err);
+    const statusCode = err.statuscode || err.status || 500;
+    res.status(statusCode).json({
+        success: false,
+        message: err.message || "Internal server error"
+    });
+});
 
 module.exports = app;

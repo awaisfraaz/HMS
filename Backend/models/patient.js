@@ -30,6 +30,6 @@ const patientschema = new mongoose.Schema({
         ref: "Hospital"
     },
 
-})
+}, { timestamps: true })
 const Patient = mongoose.model("Patient", patientschema);
 module.exports = Patient;

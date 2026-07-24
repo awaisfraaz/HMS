@@ -7,8 +7,8 @@ const Patient = require("../models/patient");
 router.get('/all',verifyjwt,async (req,res)=>{
     try {
         const hospital_id = req.user.hospital_id;
-        const tokens = await Token.find({ hospitalId: hospital_id });
-        const tokencount = await Token.countDocuments({ hospitalId: hospital_id });
+        const tokens = await Token.find({ hospital_id });
+        const tokencount = await Token.countDocuments({ hospital_id });
         res.status(200).json({tokens,tokencount});
     } catch (error) {
         console.error(error);
@@ -36,14 +36,23 @@ router.post('/generate',verifyjwt,async (req,res)=>{
             return res.status(404).json({ message: "Doctor not found" });
         }
         const resolvedDoctorName = doctor.name;
-        const resolvedDepartment = doctor.speciality || doctor.specialty || "General Medicine";
+        const resolvedDepartment = doctor.speciality || "General Medicine";
         
-        // Generate sequential token number for this doctor
-        const count = await Token.countDocuments({ doctorId: resolvedDoctorId });
+        // Generate sequential token number for this doctor (today only)
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const count = await Token.countDocuments({ 
+            doctor_id: resolvedDoctorId,
+            createdAt: { $gte: startOfToday }
+        });
         const resolvedTokenNumber = count + 1;
 
-        // Calculate estimated wait time
-        const waitingCount = await Token.countDocuments({ doctorId: resolvedDoctorId, status: "Waiting" });
+        // Calculate estimated wait time (based on today's waiting tokens)
+        const waitingCount = await Token.countDocuments({ 
+            doctor_id: resolvedDoctorId, 
+            status: "Waiting",
+            createdAt: { $gte: startOfToday }
+        });
         const waitTimeVal = waitingCount * 10;
         const resolvedWaitTime = waitTimeVal > 0 ? `${waitTimeVal} mins` : "Immediate";
 
@@ -56,8 +65,8 @@ router.post('/generate',verifyjwt,async (req,res)=>{
         // Save token to database
         const token = await Token.create({
             tokenid: resolvedTokenid,
-            hospitalId: resolvedHospitalId,
-            doctorId: resolvedDoctorId,
+            hospital_id: resolvedHospitalId,
+            doctor_id: resolvedDoctorId,
             doctorName: resolvedDoctorName,
             department: resolvedDepartment,
             patientName: resolvedPatientName,
@@ -78,7 +87,7 @@ router.post('/generate',verifyjwt,async (req,res)=>{
             hospital_id: resolvedHospitalId
         });     
         
-        res.status(200).json({ token });
+        res.status(201).json({ token, patient });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Internal server error" });
@@ -87,7 +96,7 @@ router.post('/generate',verifyjwt,async (req,res)=>{
 router.get('/lasttoken',verifyjwt,async (req,res)=>{
     try {
         const hospital_id = req.user.hospital_id;
-        const lasttoken = await Token.findOne({ hospitalId: hospital_id }).sort({ createdAt: -1 });
+        const lasttoken = await Token.findOne({ hospital_id }).sort({ createdAt: -1 });
         res.status(200).json({ lasttoken });
     } catch (error) {
         console.error(error);
@@ -101,7 +110,7 @@ router.get('/totaltokengeneratedinday',verifyjwt,async (req,res)=>{
         startOfToday.setHours(0, 0, 0, 0);
 
         const totaltokengeneratedinday = await Token.countDocuments({
-            hospitalId: hospital_id,
+            hospital_id,
             createdAt: { $gte: startOfToday }
         });
         res.status(200).json({ totaltokengeneratedinday });
@@ -114,7 +123,7 @@ router.get('/totaltokengeneratedinday',verifyjwt,async (req,res)=>{
 router.get('/public-queue/:hospitalId', async (req, res) => {
     try {
         const { hospitalId } = req.params;
-        const tokens = await Token.find({ hospitalId });
+        const tokens = await Token.find({ hospital_id: hospitalId });
         const doctors = await Doctor.find({ hospital_id: hospitalId });
         res.status(200).json({ tokens, doctors });
     } catch (error) {

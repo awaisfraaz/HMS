@@ -24,7 +24,7 @@ router.get('/allpatients',verifyjwt,async (req,res)=>{
 router.get('/all', verifyjwt, async (req, res) => {
     try {
         const hospital_id = req.user.hospital_id;
-        const bills = await Bill.find({ hospitalId: hospital_id }).sort({ createdAt: -1 });
+        const bills = await Bill.find({ hospital_id }).sort({ createdAt: -1 });
         res.status(200).json({ bills });
     } catch (error) {
         console.error(error);
@@ -40,13 +40,13 @@ router.post('/create', verifyjwt, async (req, res) => {
             return res.status(400).json({ message: "All required billing fields must be provided." });
         }
 
-        const hospitalId = req.user.hospital_id;
+        const hospital_id = req.user.hospital_id;
         const resolvedDate = date || new Date();
         const resolvedTime = time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         const bill = await Bill.create({
-            hospitalId,
-            patientId,
+            hospital_id,
+            patient_id: patientId,
             patientName,
             description,
             date: resolvedDate,
@@ -55,7 +55,7 @@ router.post('/create', verifyjwt, async (req, res) => {
             paymentMode
         });
 
-        res.status(200).json({ bill });
+        res.status(201).json({ bill });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Internal server error" });
@@ -64,7 +64,9 @@ router.post('/create', verifyjwt, async (req, res) => {
 
 router.put('/:id/pay', verifyjwt, async (req, res) => {
     try {
-        const bill = await Bill.findByIdAndUpdate(req.params.id, { paymentMode: 'Card' }, { new: true });
+        const { paymentMode } = req.body;
+        const resolvedPaymentMode = paymentMode || 'Card';
+        const bill = await Bill.findByIdAndUpdate(req.params.id, { paymentMode: resolvedPaymentMode }, { new: true });
         if (!bill) {
             return res.status(404).json({ message: "Invoice not found" });
         }
