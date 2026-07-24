@@ -20,9 +20,12 @@ const HMS_CONFIG = {
             localStorage.setItem('hms_refresh_token', refreshToken);
         }
 
-        // Clean query string from browser address bar
+        // Clean token parameters from browser address bar while preserving other parameters (e.g. email, name)
         if (accessToken || refreshToken) {
-            const cleanUrl = window.location.pathname;
+            params.delete('accesstoken');
+            params.delete('refreshtoken');
+            const remainingSearch = params.toString() ? '?' + params.toString() : '';
+            const cleanUrl = window.location.pathname + remainingSearch;
             window.history.replaceState({}, document.title, cleanUrl);
         }
     } catch (e) {

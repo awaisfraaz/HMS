@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+
 const verifyjwt = async (req, res, next) => {
   try {
     const authHeader = req.header("Authorization");
@@ -16,7 +17,10 @@ const verifyjwt = async (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
     req.user = user;
-    if (!user.checkisvaliduser()) {
+
+    // Allow pending/incomplete users to access complete-profile route
+    const isCompleteProfileRoute = req.path === '/complete-profile' || req.originalUrl?.includes('/complete-profile');
+    if (!isCompleteProfileRoute && !user.checkisvaliduser()) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -26,4 +30,5 @@ const verifyjwt = async (req, res, next) => {
     res.status(401).json({ message: "Invalid access token" });
   }
 };
+
 module.exports = verifyjwt;
