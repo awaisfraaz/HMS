@@ -432,6 +432,18 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       console.error("Error fetching pending users:", error);
     }
+
+    // Merge mock users if any exist in HMS_DB that aren't in API response
+    const mockUsers = (HMS_DB.getState && HMS_DB.getState().users) || [];
+    mockUsers.forEach(mu => {
+      if (!users.some(u => u.email && mu.email && u.email.toLowerCase() === mu.email.toLowerCase())) {
+        users.push({
+          ...mu,
+          status: mu.status || 'Pending'
+        });
+      }
+    });
+
     if (cachedHospitals.length === 0) {
       await loadHospitalsData();
     }
@@ -443,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const filteredUsers = users.filter(u => {
       if (u.role === 'Super Admin') return false;
 
-      const currentStatus = u.status || 'Active';
+      const currentStatus = u.status || 'Pending';
       const matchStatus = statusVal === 'All' || currentStatus === statusVal;
       const matchRole = roleVal === 'All' || u.role === roleVal;
       return matchStatus && matchRole;
@@ -465,14 +477,18 @@ document.addEventListener('DOMContentLoaded', () => {
     filteredUsers.forEach(u => {
       const row = document.createElement('tr');
       const targetHospitalId = u.hospital_id || u.hospitalId;
-      const hospital = targetHospitalId ? hospitals.find(h => (
-        (h.id && h.id === targetHospitalId) || 
-        (h._id && h._id === targetHospitalId)
-      )) : null;
-      console.log(`User: ${u.name}, assigned hospital ID in DB: ${targetHospitalId}, matched hospital: ${hospital ? hospital.name : 'None'}`);
-      const hospitalName = hospital ? hospital.name : 'Unknown';
+      let hospital = null;
+      if (typeof targetHospitalId === 'object' && targetHospitalId !== null) {
+        hospital = targetHospitalId;
+      } else if (targetHospitalId) {
+        hospital = hospitals.find(h => (
+          (h.id && h.id === targetHospitalId) || 
+          (h._id && h._id === targetHospitalId)
+        ));
+      }
+      const hospitalName = hospital ? (hospital.name || 'Unknown') : 'Unknown';
       
-      const currentStatus = u.status || 'Active';
+      const currentStatus = u.status || 'Pending';
 
       let statusClass = 'badge-pending';
       if (currentStatus === 'Active') statusClass = 'badge-active';
