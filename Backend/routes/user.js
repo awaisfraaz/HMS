@@ -180,7 +180,7 @@ router.get("/allusers",verifyjwt, async (req, res) => {
       if(req.user.role !== "Super Admin"){
         return res.status(403).json({ message: "Forbidden. Only Super Admin can get all users" });
       }
-        const users = await User.find().select('-password -refreshToken');
+        const users = await User.find().select('-password -refreshToken').populate('hospital_id', 'name city');
         res.status(200).json({ users });
     } catch (error) {
         console.error(error);

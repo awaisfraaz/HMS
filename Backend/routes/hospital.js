@@ -2,9 +2,8 @@ const express = require("express");
 const router = express.Router()
 const codegenerator = require("../utils/codegenerator")
 const Hospital = require("../models/hospital")
+const User = require("../models/user")
 const verifyjwt = require("../middleware/auth")
-
-
 
 router.get('/', async (req, res) => {
     try {
@@ -60,7 +59,22 @@ router.post('/register', async (req, res) => {
             hospitalcode,
         })
         await hospital.save()
-        // console.log(hospital)
+        
+        // Automatically create a default Hospital Admin user request with Pending status
+        const defaultAdminEmail = `admin@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
+        const existingUser = await User.findOne({ email: defaultAdminEmail });
+        if (!existingUser) {
+            const adminUser = new User({
+                name: `Admin (${name})`,
+                email: defaultAdminEmail,
+                password: 'admin',
+                role: 'Hospital Admin',
+                hospital_id: hospital._id,
+                status: 'Pending'
+            });
+            await adminUser.save();
+        }
+
         return res.status(201).json({ message: "Hospital registered successfully" })
     } catch (error) {
         console.log(error)
