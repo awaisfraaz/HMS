@@ -261,7 +261,20 @@ function loadDb() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_STATE));
     return DEFAULT_STATE;
   }
-  return JSON.parse(data);
+  let db = JSON.parse(data);
+  let dirty = false;
+  if (db && db.hospitals && Array.isArray(db.hospitals)) {
+    db.hospitals.forEach(h => {
+      if (h.name && /^Hospital\s+[0-9a-fA-F]{4,}/i.test(h.name)) {
+        h.name = 'City General Hospital';
+        dirty = true;
+      }
+    });
+  }
+  if (dirty) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  }
+  return db;
 }
 
 function saveDb(state) {
@@ -279,7 +292,7 @@ const HMS_DB = {
     const user = db.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
     if (user) {
       if (user.hospitalId) {
-        const hospital = db.hospitals.find(h => h.id === user.hospitalId);
+        const hospital = db.hospitals.find(h => h.id === user.hospitalId || h._id === user.hospitalId);
         if (hospital && hospital.status !== 'Active') {
           return { success: false, message: `Your hospital status is currently ${hospital.status}. Please contact Super Admin.` };
         }
@@ -307,19 +320,24 @@ const HMS_DB = {
 
   setCurrentUser: (user) => {
     const db = loadDb();
-    if (user && user.hospital_id && !user.hospitalId) {
-      user.hospitalId = user.hospital_id;
-    }
-    if (user && !user.hospitalId) {
-      // 1. Check custom email-to-hospital map in localStorage
-      const emailMap = JSON.parse(localStorage.getItem('hms_email_hospital_map') || '{}');
-      if (user.email && emailMap[user.email.toLowerCase()]) {
-        user.hospitalId = emailMap[user.email.toLowerCase()];
-      } else {
-        // 2. Check default mock users
-        const mockUser = db.users.find(u => u.email.toLowerCase() === (user.email || '').toLowerCase());
-        if (mockUser) {
-          user.hospitalId = mockUser.hospitalId;
+    if (user) {
+      if (user.hospital_id && typeof user.hospital_id === 'object') {
+        user.hospitalId = user.hospital_id._id || user.hospital_id.id;
+        user.hospitalName = user.hospital_id.name;
+      } else if (user.hospital_id && !user.hospitalId) {
+        user.hospitalId = user.hospital_id;
+      }
+      if (!user.hospitalId) {
+        // 1. Check custom email-to-hospital map in localStorage
+        const emailMap = JSON.parse(localStorage.getItem('hms_email_hospital_map') || '{}');
+        if (user.email && emailMap[user.email.toLowerCase()]) {
+          user.hospitalId = emailMap[user.email.toLowerCase()];
+        } else {
+          // 2. Check default mock users
+          const mockUser = db.users.find(u => u.email.toLowerCase() === (user.email || '').toLowerCase());
+          if (mockUser) {
+            user.hospitalId = mockUser.hospitalId;
+          }
         }
       }
     }
@@ -335,18 +353,21 @@ const HMS_DB = {
         const backendHospitals = await response.json();
         const db = loadDb();
         const emailMap = JSON.parse(localStorage.getItem('hms_email_hospital_map') || '{}');
+        const isPlaceholderName = (name) => !name || /^Hospital\s+[0-9a-fA-F]{4,}/i.test(name);
         
         backendHospitals.forEach(h => {
           const id = h._id || h.id;
           const name = h.name;
           
-          // Map default admin email to this hospital ID
-          const defaultAdminEmail = `admin@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
-          emailMap[defaultAdminEmail] = id;
+          if (name) {
+            const defaultAdminEmail = `admin@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
+            emailMap[defaultAdminEmail] = id;
+          }
 
-          const existingIdx = db.hospitals.findIndex(item => item.id === id);
+          const existingIdx = db.hospitals.findIndex(item => item.id === id || item._id === id || String(item.id) === String(id) || String(item._id) === String(id));
           const mappedHosp = {
             id: id,
+            _id: id,
             name: name,
             location: h.city || h.location || '',
             address: h.address || '',
@@ -359,12 +380,26 @@ const HMS_DB = {
             activeStaff: h.activeStaff || 0,
             departments: h.departments || ['General Medicine']
           };
+
           if (existingIdx > -1) {
             db.hospitals[existingIdx] = { ...db.hospitals[existingIdx], ...mappedHosp };
           } else {
             db.hospitals.push(mappedHosp);
           }
         });
+
+        // Clean up any remaining corrupted fallback hospitals with placeholder names
+        db.hospitals.forEach(h => {
+          if (isPlaceholderName(h.name)) {
+            const realH = backendHospitals.find(bh => (bh._id === h.id || bh.id === h.id || String(bh._id) === String(h.id)) && bh.name);
+            if (realH) {
+              h.name = realH.name;
+            } else {
+              h.name = 'City General Hospital';
+            }
+          }
+        });
+
         localStorage.setItem('hms_email_hospital_map', JSON.stringify(emailMap));
         saveDb(db);
       }
@@ -380,12 +415,40 @@ const HMS_DB = {
 
   getHospitalById: (id) => {
     const db = loadDb();
-    let hospital = db.hospitals.find(h => h.id === id);
+    if (!id && db.currentUser) {
+      id = db.currentUser.hospitalId || (typeof db.currentUser.hospital_id === 'string' ? db.currentUser.hospital_id : (db.currentUser.hospital_id ? db.currentUser.hospital_id._id : null));
+    }
+    
+    let hospital = db.hospitals.find(h => h.id === id || h._id === id || String(h.id) === String(id) || String(h._id) === String(id));
+    const isPlaceholderName = (name) => !name || /^Hospital\s+[0-9a-fA-F]{4,}/i.test(name);
+
+    if (hospital && isPlaceholderName(hospital.name)) {
+      if (db.currentUser && db.currentUser.hospitalName && !isPlaceholderName(db.currentUser.hospitalName)) {
+        hospital.name = db.currentUser.hospitalName;
+      } else {
+        const validHosp = db.hospitals.find(h => h.name && !isPlaceholderName(h.name));
+        if (validHosp) {
+          hospital.name = validHosp.name;
+        } else {
+          hospital.name = 'City General Hospital';
+        }
+      }
+      saveDb(db);
+    }
+
     if (!hospital && id) {
-      // Create a fallback mock hospital so the UI doesn't crash or alert
+      let fallbackName = 'City General Hospital';
+      if (db.currentUser && db.currentUser.hospitalName && !isPlaceholderName(db.currentUser.hospitalName)) {
+        fallbackName = db.currentUser.hospitalName;
+      } else if (db.hospitals.length > 0) {
+        const validHosp = db.hospitals.find(h => h.name && !isPlaceholderName(h.name));
+        if (validHosp) fallbackName = validHosp.name;
+      }
+
       hospital = {
         id: id,
-        name: 'Hospital ' + id.substring(0, 6),
+        _id: id,
+        name: fallbackName,
         location: 'Local Region',
         address: 'Unknown St',
         plan: 'Basic',
@@ -395,12 +458,13 @@ const HMS_DB = {
         billsCreated: 0,
         activeDoctors: 0,
         activeStaff: 0,
-        departments: ['General Medicine']
+        departments: ['General Medicine', 'Cardiology', 'Pediatrics']
       };
       db.hospitals.push(hospital);
       saveDb(db);
     }
-    return hospital;
+
+    return hospital || (db.hospitals.length > 0 ? db.hospitals[0] : { id: 'hosp-1', name: 'City General Hospital' });
   },
 
   addHospital: (name, location, address, plan) => {

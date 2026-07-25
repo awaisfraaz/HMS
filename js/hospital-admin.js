@@ -40,6 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     if (!hospital) {
+      hospital = HMS_DB.getHospitalById(hospitalId);
+    }
+    
+    if (!hospital) {
       alert('Hospital profile not found.');
       HMS_DB.logout();
       window.location.href = 'login-onboarding.html';
