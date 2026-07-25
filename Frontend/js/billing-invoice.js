@@ -6,11 +6,46 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  const hospitalId = currentUser.hospital_id || currentUser.hospitalId;
-  const hospital = HMS_DB.getHospitalById(hospitalId);
+  const rawHospId = typeof currentUser.hospital_id === 'string' ? currentUser.hospital_id : (currentUser.hospitalId || (currentUser.hospital_id ? currentUser.hospital_id._id : ''));
+  
+  async function loadHospitalTitle() {
+    const titleEl = document.getElementById('hospital-title');
+    if (!titleEl) return;
 
-  // Set Hospital Title in Header
-  document.getElementById('hospital-title').textContent = hospital ? hospital.name : 'Hospital';
+    if (currentUser.hospital_id && typeof currentUser.hospital_id === 'object' && currentUser.hospital_id.name) {
+      titleEl.textContent = currentUser.hospital_id.name;
+      return;
+    }
+
+    try {
+      if (rawHospId) {
+        const response = await fetch(`${HMS_CONFIG.API_BASE_URL}api/v1/hospital/${rawHospId}`);
+        if (response.ok) {
+          const hospData = await response.json();
+          if (hospData && hospData.name) {
+            titleEl.textContent = hospData.name;
+            return;
+          }
+        }
+      }
+      const responseAll = await fetch(`${HMS_CONFIG.API_BASE_URL}api/v1/hospital`);
+      if (responseAll.ok) {
+        const hospitals = await responseAll.json();
+        const found = hospitals.find(h => h._id === rawHospId || h.id === rawHospId);
+        if (found && found.name) {
+          titleEl.textContent = found.name;
+          return;
+        }
+      }
+    } catch (e) {
+      console.error("Backend hospital fetch error:", e);
+    }
+    
+    const localHosp = HMS_DB.getHospitalById(rawHospId);
+    titleEl.textContent = localHosp ? localHosp.name : 'Hospital';
+  }
+
+  loadHospitalTitle();
   document.getElementById('receptionist-username').textContent = currentUser.name;
 
   // DOM elements

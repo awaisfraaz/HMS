@@ -7,10 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let hospital = null;
 
   async function loadHospital() {
-    const token = localStorage.getItem('hms_access_token');
-    if (token) {
-      try {
-        const response = await hmsFetch(`${HMS_CONFIG.API_BASE_URL}api/v1/hospital`);
+    try {
+      if (hospitalId) {
+        const resSingle = await fetch(`${HMS_CONFIG.API_BASE_URL}api/v1/hospital/${hospitalId}`);
+        if (resSingle.ok) {
+          hospital = await resSingle.json();
+        }
+      }
+      if (!hospital || !hospital.name) {
+        const response = await fetch(`${HMS_CONFIG.API_BASE_URL}api/v1/hospital`);
         if (response.ok) {
           const hospitals = await response.json();
           hospital = hospitals.find(h => (h._id === hospitalId || h.id === hospitalId));
@@ -28,12 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
             hospital = hospitals.find(h => h.status === 'Approved') || hospitals[0];
           }
         }
-      } catch (err) {
-        console.error("Error loading hospital details from backend:", err);
       }
+    } catch (err) {
+      console.error("Error loading hospital details from backend:", err);
     }
 
-    if (!hospital) {
+    if (!hospital || !hospital.name) {
       hospital = HMS_DB.getHospitalById(hospitalId);
     }
 

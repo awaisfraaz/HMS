@@ -52,7 +52,7 @@ router.post("/login", async (req, res) => {
       user._id,
     );
 
-    const loggeduser = await User.findById(user._id).select("name email role hospital_id");
+    const loggeduser = await User.findById(user._id).select("name email role hospital_id").populate("hospital_id", "name city address subscriptiontier status");
 
     /** @type {import('express').CookieOptions} */
     const options = {

@@ -26,6 +26,20 @@ router.get('/all', async (req, res) => {
     }
 })
 
+// getting single hospital details by ID
+router.get('/:id', async (req, res) => {
+    try {
+        const hospital = await Hospital.findById(req.params.id);
+        if (!hospital) {
+            return res.status(404).json({ message: "Hospital not found" });
+        }
+        return res.status(200).json(hospital);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+})
+
 
 router.post('/register', async (req, res) => {
     try {
