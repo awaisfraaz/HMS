@@ -433,16 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error("Error fetching pending users:", error);
     }
 
-    // Merge mock users if any exist in HMS_DB that aren't in API response
-    const mockUsers = (HMS_DB.getState && HMS_DB.getState().users) || [];
-    mockUsers.forEach(mu => {
-      if (!users.some(u => u.email && mu.email && u.email.toLowerCase() === mu.email.toLowerCase())) {
-        users.push({
-          ...mu,
-          status: mu.status || 'Pending'
-        });
-      }
-    });
+
 
     if (cachedHospitals.length === 0) {
       await loadHospitalsData();
