@@ -103,6 +103,7 @@ body {
   margin-bottom: var(--spacing-sm);
 }
 
+.hero-patient,
 .hero-room {
   font-size: var(--font-size-3xl);
   font-weight: 700;

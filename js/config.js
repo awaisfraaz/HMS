@@ -6,6 +6,43 @@ const HMS_CONFIG = {
         : 'https://hms-backend-jet-six.vercel.app/'
 };
 
+// Session storage helper replacing localStorage reliance
+const HMS_SESSION = {
+    getAccessToken: () => sessionStorage.getItem('hms_access_token') || localStorage.getItem('hms_access_token'),
+    getRefreshToken: () => sessionStorage.getItem('hms_refresh_token') || localStorage.getItem('hms_refresh_token'),
+    getCurrentUser: () => {
+        try {
+            const raw = sessionStorage.getItem('hms_current_user') || localStorage.getItem('hms_current_user');
+            return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+            return null;
+        }
+    },
+    setUserSession: (user, accessToken, refreshToken) => {
+        if (user) {
+            sessionStorage.setItem('hms_current_user', JSON.stringify(user));
+            localStorage.setItem('hms_current_user', JSON.stringify(user));
+        }
+        if (accessToken) {
+            sessionStorage.setItem('hms_access_token', accessToken);
+            localStorage.setItem('hms_access_token', accessToken);
+        }
+        if (refreshToken) {
+            sessionStorage.setItem('hms_refresh_token', refreshToken);
+            localStorage.setItem('hms_refresh_token', refreshToken);
+        }
+    },
+    clearSession: () => {
+        sessionStorage.removeItem('hms_access_token');
+        sessionStorage.removeItem('hms_refresh_token');
+        sessionStorage.removeItem('hms_current_user');
+        localStorage.removeItem('hms_access_token');
+        localStorage.removeItem('hms_refresh_token');
+        localStorage.removeItem('hms_current_user');
+    }
+};
+window.HMS_SESSION = HMS_SESSION;
+
 // Automatically extract tokens from OAuth redirect URL query string if present
 (function handleOAuthRedirectTokens() {
     try {
@@ -13,14 +50,11 @@ const HMS_CONFIG = {
         const accessToken = params.get('accesstoken');
         const refreshToken = params.get('refreshtoken');
 
-        if (accessToken) {
-            localStorage.setItem('hms_access_token', accessToken);
-        }
-        if (refreshToken) {
-            localStorage.setItem('hms_refresh_token', refreshToken);
+        if (accessToken || refreshToken) {
+            HMS_SESSION.setUserSession(null, accessToken, refreshToken);
         }
 
-        // Clean token parameters from browser address bar while preserving other parameters (e.g. email, name)
+        // Clean token parameters from browser address bar while preserving other parameters
         if (accessToken || refreshToken) {
             params.delete('accesstoken');
             params.delete('refreshtoken');
@@ -38,7 +72,7 @@ async function hmsFetch(url, options = {}) {
     options.headers = options.headers || {};
     
     // Add Bearer token if present
-    const token = localStorage.getItem('hms_access_token');
+    const token = HMS_SESSION.getAccessToken();
     if (token) {
         options.headers['Authorization'] = 'Bearer ' + token;
     }
@@ -49,7 +83,7 @@ async function hmsFetch(url, options = {}) {
 
     // Intercept 401 Unauthorized errors to perform a silent token refresh
     if (response.status === 401) {
-        const refreshToken = localStorage.getItem('hms_refresh_token');
+        const refreshToken = HMS_SESSION.getRefreshToken();
         if (refreshToken) {
             console.warn("Access token expired or unauthorized. Attempting silent token refresh...");
             try {
@@ -66,21 +100,14 @@ async function hmsFetch(url, options = {}) {
                     const refreshData = await refreshResponse.json();
                     console.log("Token refreshed successfully.");
                     
-                    // Update tokens in localStorage
-                    localStorage.setItem('hms_access_token', refreshData.accesstoken);
-                    if (refreshData.refreshtoken) {
-                        localStorage.setItem('hms_refresh_token', refreshData.refreshtoken);
-                    }
+                    HMS_SESSION.setUserSession(refreshData.user, refreshData.accesstoken, refreshData.refreshtoken);
 
                     // Retry original request with the new access token
                     options.headers['Authorization'] = 'Bearer ' + refreshData.accesstoken;
                     response = await fetch(url, options);
                 } else {
                     console.error("Refresh token expired or invalid. Logging out...");
-                    // Logout if refresh token call fails
-                    localStorage.removeItem('hms_access_token');
-                    localStorage.removeItem('hms_refresh_token');
-                    localStorage.removeItem('hms_current_user');
+                    HMS_SESSION.clearSession();
                     window.location.href = 'login-onboarding.html';
                 }
             } catch (err) {
@@ -93,3 +120,4 @@ async function hmsFetch(url, options = {}) {
 }
 
 window.hmsFetch = hmsFetch;
+
