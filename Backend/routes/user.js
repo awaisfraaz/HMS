@@ -279,6 +279,20 @@ router.post("/registerdoctor",verifyjwt, async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     } 
 })
+// GET /api/v1/user/me
+// Returns current authenticated user profile
+router.get("/me", verifyjwt, async (req, res) => {
+    try {
+        const loggeduser = await User.findById(req.user._id)
+            .select("name email role hospital_id status")
+            .populate("hospital_id", "name city address subscriptiontier status");
+        res.status(200).json({ user: loggeduser });
+    } catch (error) {
+        console.error("Error fetching current user profile:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
 // GET /api/v1/user/google
 // Initiates the Google OAuth login process.
 router.get("/google", (req, res) => {
@@ -296,7 +310,7 @@ router.get("/google", (req, res) => {
 
 // GET /api/v1/user/google/callback
 router.get('/google/callback', async (req, res) => {
-    const FRONTEND_URL = "https://awaisfraaz.github.io/HMS/";
+    const FRONTEND_URL = process.env.FRONTEND_URL || "https://awaisfraaz.github.io/HMS/";
     try {
         const { code, error: authError } = req.query;
         if (authError) {
@@ -348,6 +362,10 @@ router.get('/google/callback', async (req, res) => {
         }
         const { accesstoken, refreshtoken } = tokens;
 
+        const loggeduser = await User.findById(user._id)
+            .select("name email role hospital_id status")
+            .populate("hospital_id", "name city address subscriptiontier status");
+
         /** @type {import('express').CookieOptions} */
         const options = {
             httpOnly: true,
@@ -355,11 +373,20 @@ router.get('/google/callback', async (req, res) => {
             sameSite: "none",
         };
 
-        // If user is brand new or missing role/hospital, redirect to complete-profile onboarding with tokens
+        const userParam = encodeURIComponent(JSON.stringify(loggeduser || {
+            _id: user._id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            hospital_id: user.hospital_id,
+            status: user.status
+        }));
+
+        // If user is brand new or missing role/hospital, redirect to complete-profile onboarding with tokens & user
         if (!user.role || !user.hospital_id) {
             return res.cookie("accesstoken", accesstoken, options)
                       .cookie("refreshtoken", refreshtoken, options)
-                      .redirect(`${FRONTEND_URL}complete-profile.html?email=${encodeURIComponent(userInfo.email)}&name=${encodeURIComponent(userInfo.name || '')}&accesstoken=${accesstoken}&refreshtoken=${refreshtoken}`);
+                      .redirect(`${FRONTEND_URL}complete-profile.html?email=${encodeURIComponent(userInfo.email)}&name=${encodeURIComponent(userInfo.name || '')}&accesstoken=${accesstoken}&refreshtoken=${refreshtoken}&user=${userParam}`);
         }
 
         // Determine destination dashboard based on role
@@ -371,11 +398,11 @@ router.get('/google/callback', async (req, res) => {
 
         res.cookie("accesstoken", accesstoken, options)
            .cookie("refreshtoken", refreshtoken, options)
-           .redirect(`${FRONTEND_URL}${targetDashboard}?accesstoken=${accesstoken}&refreshtoken=${refreshtoken}`);
+           .redirect(`${FRONTEND_URL}${targetDashboard}?accesstoken=${accesstoken}&refreshtoken=${refreshtoken}&user=${userParam}`);
 
     } catch (error) {
         console.error("Google OAuth Callback Error:", error);
-        res.redirect(`https://awaisfraaz.github.io/HMS/login-onboarding.html?error=Internal server error`);
+        res.redirect(`${FRONTEND_URL}login-onboarding.html?error=Internal server error`);
     }
 });
 

@@ -43,21 +43,51 @@ const HMS_SESSION = {
 };
 window.HMS_SESSION = HMS_SESSION;
 
-// Automatically extract tokens from OAuth redirect URL query string if present
-(function handleOAuthRedirectTokens() {
+// Automatically extract tokens and user payload from OAuth redirect URL query string if present
+(async function handleOAuthRedirectTokens() {
     try {
         const params = new URLSearchParams(window.location.search);
         const accessToken = params.get('accesstoken');
         const refreshToken = params.get('refreshtoken');
+        const userParam = params.get('user');
 
-        if (accessToken || refreshToken) {
-            HMS_SESSION.setUserSession(null, accessToken, refreshToken);
+        let userObj = null;
+        if (userParam) {
+            try {
+                userObj = JSON.parse(decodeURIComponent(userParam));
+            } catch (e) {
+                console.error("Error parsing user query param:", e);
+            }
         }
 
-        // Clean token parameters from browser address bar while preserving other parameters
-        if (accessToken || refreshToken) {
+        if (accessToken || refreshToken || userObj) {
+            HMS_SESSION.setUserSession(userObj, accessToken, refreshToken);
+
+            // If user object was not passed in URL, attempt silent fetch from /api/v1/user/me
+            if (!userObj && accessToken) {
+                try {
+                    const res = await fetch(`${HMS_CONFIG.API_BASE_URL}api/v1/user/me`, {
+                        headers: {
+                            'Authorization': 'Bearer ' + accessToken
+                        }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.user) {
+                            HMS_SESSION.setUserSession(data.user, accessToken, refreshToken);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error fetching user profile during OAuth token extraction:", err);
+                }
+            }
+        }
+
+        // Clean token and user parameters from browser address bar while preserving other parameters
+        if (accessToken || refreshToken || userParam) {
             params.delete('accesstoken');
             params.delete('refreshtoken');
+            params.delete('user');
             const remainingSearch = params.toString() ? '?' + params.toString() : '';
             const cleanUrl = window.location.pathname + remainingSearch;
             window.history.replaceState({}, document.title, cleanUrl);
