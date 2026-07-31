@@ -3,13 +3,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // If not, we will default to the first hospital ('hosp-1') to render the demo boards
   const currentUser = HMS_SESSION.getCurrentUser();
   const urlParams = new URLSearchParams(window.location.search);
-  const hospitalId = urlParams.get('hospitalId') || (currentUser ? (currentUser.hospitalId || currentUser.hospital_id) : 'hosp-1');
+  let targetHospitalId = urlParams.get('hospitalId') || (currentUser ? (currentUser.hospitalId || currentUser.hospital_id) : 'hosp-1');
   let hospital = null;
 
   async function loadHospital() {
     try {
-      if (hospitalId) {
-        const resSingle = await fetch(`${HMS_CONFIG.API_BASE_URL}api/v1/hospital/${hospitalId}`);
+      if (targetHospitalId && targetHospitalId !== 'hosp-1') {
+        const resSingle = await fetch(`${HMS_CONFIG.API_BASE_URL}api/v1/hospital/${targetHospitalId}`);
         if (resSingle.ok) {
           hospital = await resSingle.json();
         }
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const response = await fetch(`${HMS_CONFIG.API_BASE_URL}api/v1/hospital`);
         if (response.ok) {
           const hospitals = await response.json();
-          hospital = hospitals.find(h => (h._id === hospitalId || h.id === hospitalId));
+          hospital = hospitals.find(h => (h._id === targetHospitalId || h.id === targetHospitalId));
           if (!hospital && currentUser && currentUser.email) {
             const emailParts = currentUser.email.toLowerCase().split('@');
             const emailPrefix = emailParts[0].replace(/[^a-z0-9]/g, '');
@@ -39,10 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (!hospital || !hospital.name) {
-      hospital = HMS_DB.getHospitalById(hospitalId);
+      hospital = HMS_DB.getHospitalById(targetHospitalId);
     }
 
     if (hospital) {
+      targetHospitalId = hospital._id || hospital.id || targetHospitalId;
       document.getElementById('hospital-title').textContent = hospital.name;
     }
   }
@@ -66,19 +67,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let tokens = [];
 
     try {
-      const response = await fetch(`${HMS_CONFIG.API_BASE_URL}api/v1/token/public-queue/${hospitalId}`);
+      const response = await fetch(`${HMS_CONFIG.API_BASE_URL}api/v1/token/public-queue/${targetHospitalId}`);
       if (response.ok) {
         const data = await response.json();
         doctors = data.doctors || [];
         tokens = data.tokens || [];
       } else {
-        doctors = HMS_DB.getDoctors(hospitalId);
-        tokens = HMS_DB.getTokens(hospitalId);
+        doctors = HMS_DB.getDoctors(targetHospitalId);
+        tokens = HMS_DB.getTokens(targetHospitalId);
       }
     } catch (err) {
       console.error("Error fetching live queue data from backend:", err);
-      doctors = HMS_DB.getDoctors(hospitalId);
-      tokens = HMS_DB.getTokens(hospitalId);
+      doctors = HMS_DB.getDoctors(targetHospitalId);
+      tokens = HMS_DB.getTokens(targetHospitalId);
     }
 
     // Helper to match doctor IDs (supports ObjectId vs String)
@@ -147,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (hasActiveTokens) {
         const servingText = serving ? `#${serving.tokenNumber}` : '—';
-        const nextText = nextUp.length > 0 ? `#${nextUp[0].tokenNumber}` : '—';
+        const nextText = nextUp.length > 0 ? nextUp.map(t => `#${t.tokenNumber}`).join(', ') : '—';
         
         cardInnerHtml += `
           <div class="card-status-group">

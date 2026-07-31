@@ -123,11 +123,24 @@ router.get('/totaltokengeneratedinday',verifyjwt,async (req,res)=>{
 router.get('/public-queue/:hospitalId', async (req, res) => {
     try {
         const { hospitalId } = req.params;
-        const tokens = await Token.find({ hospital_id: hospitalId });
-        const doctors = await Doctor.find({ hospital_id: hospitalId });
+        const mongoose = require("mongoose");
+        const Hospital = require("../models/hospital");
+
+        let query = {};
+        if (hospitalId && hospitalId !== 'hosp-1' && mongoose.Types.ObjectId.isValid(hospitalId)) {
+            query = { hospital_id: hospitalId };
+        } else {
+            const firstHosp = await Hospital.findOne({ status: "Approved" }) || await Hospital.findOne();
+            if (firstHosp) {
+                query = { hospital_id: firstHosp._id };
+            }
+        }
+
+        const tokens = await Token.find(query);
+        const doctors = await Doctor.find(query);
         res.status(200).json({ tokens, doctors });
     } catch (error) {
-        console.error(error);
+        console.error("Public queue error:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
