@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let nameParam = urlParams.get('name') || localStorage.getItem('hms_google_pending_name') || '';
 
   if (!emailParam) {
-    const token = localStorage.getItem('hms_access_token');
+    const token = HMS_SESSION.getAccessToken();
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
@@ -43,21 +43,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
     } catch (error) {
-      console.warn('API error fetching hospitals, loading fallback...', error);
+      console.warn('API error fetching hospitals', error);
     }
 
-    // Fallback using mock data if backend not reachable
-    if (typeof HMS_DB !== 'undefined' && HMS_DB.hospitals) {
-      hospitalSelect.innerHTML = '<option value="" disabled selected>Select your hospital...</option>';
-      HMS_DB.hospitals.forEach(h => {
-        const opt = document.createElement('option');
-        opt.value = h.id || h._id;
-        opt.textContent = `${h.name} (${h.code || h.city})`;
-        hospitalSelect.appendChild(opt);
-      });
-    } else {
-      hospitalSelect.innerHTML = '<option value="" disabled selected>Failed to load hospitals</option>';
-    }
+    hospitalSelect.innerHTML = '<option value="" disabled selected>Failed to load hospitals</option>';
   }
 
   await loadHospitals();
@@ -99,9 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const data = await response.json();
 
       if (response.ok) {
-        if (data.accesstoken) localStorage.setItem('hms_access_token', data.accesstoken);
-        if (data.refreshtoken) localStorage.setItem('hms_refresh_token', data.refreshtoken);
-        if (data.user) HMS_DB.setCurrentUser(data.user);
+        HMS_SESSION.setUserSession(data.user, data.accesstoken, data.refreshtoken);
 
         showAlert('Profile updated successfully! Redirecting...', 'success');
 

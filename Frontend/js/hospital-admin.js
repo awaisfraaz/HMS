@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   // Authentication Guard
-  const currentUser = HMS_DB.getCurrentUser();
+  const currentUser = HMS_SESSION.getCurrentUser();
   if (!currentUser || currentUser.role !== 'Hospital Admin') {
     window.location.href = 'login-onboarding.html';
     return;
@@ -271,8 +271,13 @@ document.addEventListener('DOMContentLoaded', () => {
   closeAlertBtn.addEventListener('click', () => alertBanner.classList.add('hidden'));
 
   // Logout Handler
-  logoutBtn.addEventListener('click', () => {
-    HMS_DB.logout();
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await hmsFetch(`${HMS_CONFIG.API_BASE_URL}api/v1/user/logout`, { method: 'POST' });
+    } catch (e) {
+      console.error("Logout API error:", e);
+    }
+    HMS_SESSION.clearSession();
     window.location.href = 'login-onboarding.html';
   });
 

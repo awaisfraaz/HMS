@@ -159,12 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let result = await HMS_API.loginUser(email, password);
 
     if (result.success) {
-      // Sync hospitals from backend to localStorage first
-      await HMS_DB.syncHospitals();
-      // Keep local mock storage state synchronized
-      HMS_DB.setCurrentUser(result.user);
-      if (result.accesstoken) localStorage.setItem('hms_access_token', result.accesstoken);
-      if (result.refreshtoken) localStorage.setItem('hms_refresh_token', result.refreshtoken);
+      HMS_SESSION.setUserSession(result.user, result.accesstoken, result.refreshtoken);
       showAlert(`Welcome back, ${result.user.name}! Redirecting...`, 'success');
 
       // Redirect based on role
@@ -203,8 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(result);
 
     if (result.success) {
-      // Also register in the local mock database to keep the frontend demo functionality operational
-
       showAlert(`Successfully registered! Hospital is pending Super Admin approval. Default Admin user created: admin@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`, 'success');
       registerForm.reset();
     } else {
@@ -230,17 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
  
     let result = await HMS_API.createStaffUser(name, email, password, role, hospital_id);
 
-    // if (!result.success && result.message === 'Server connection failed.') {
-    //   // Fallback to local mock storage
-    //   const mockResult = HMS_DB.registerStaff(name, email, password, role, hospitalId);
-    //   result = mockResult;
-    // }
-
     if (result.success) {
-      const emailMap = JSON.parse(localStorage.getItem('hms_email_hospital_map') || '{}');
-      emailMap[email.toLowerCase()] = hospital_id;
-      localStorage.setItem('hms_email_hospital_map', JSON.stringify(emailMap));
-
       showAlert(`Staff registration request submitted successfully! Pending Super Admin approval.`, 'success');
       registerStaffForm.reset();
     } else {

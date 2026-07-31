@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   // Determine target hospital. Let's see if anyone is logged in.
   // If not, we will default to the first hospital ('hosp-1') to render the demo boards
-  const currentUser = HMS_DB.getCurrentUser();
+  const currentUser = HMS_SESSION.getCurrentUser();
   const urlParams = new URLSearchParams(window.location.search);
   const hospitalId = urlParams.get('hospitalId') || (currentUser ? (currentUser.hospitalId || currentUser.hospital_id) : 'hosp-1');
   let hospital = null;
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // DOM elements
   const clockEl = document.getElementById('live-clock');
   const heroTokenEl = document.getElementById('hero-token-num');
-  const heroRoomEl = document.getElementById('hero-room-num');
+  const heroPatientEl = document.getElementById('hero-patient-name') || document.getElementById('hero-room-num');
   const heroDocEl = document.getElementById('hero-doc-name');
   const doctorsGridEl = document.getElementById('doctors-grid');
 
@@ -102,13 +102,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Render Hero Card
     if (heroToken) {
-      const doctorObj = doctors.find(d => matchDoctorId(heroToken.doctorId, d));
+      const docId = heroToken.doctorId || heroToken.doctor_id;
+      const doctorObj = doctors.find(d => matchDoctorId(docId, d));
+      const patientName = heroToken.patientName || heroToken.patient_name || 'N/A';
+      const doctorName = heroToken.doctorName || heroToken.doctor_name || (doctorObj ? doctorObj.name : '');
+      const roomInfo = doctorObj && doctorObj.room ? ` • Room ${doctorObj.room}` : '';
+
       heroTokenEl.textContent = `#${heroToken.tokenNumber}`;
-      heroRoomEl.textContent = doctorObj ? (doctorObj.room || 'N/A') : 'N/A';
-      heroDocEl.textContent = heroToken.doctorName;
+      if (heroPatientEl) {
+        heroPatientEl.textContent = patientName;
+      }
+      heroDocEl.textContent = doctorName ? `${doctorName}${roomInfo}` : 'No Doctor Assigned';
     } else {
       heroTokenEl.textContent = '—';
-      heroRoomEl.textContent = '—';
+      if (heroPatientEl) {
+        heroPatientEl.textContent = '—';
+      }
       heroDocEl.textContent = 'No Patients in Queue';
     }
 
@@ -120,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
       card.className = 'doctor-queue-card';
 
       // Find tokens for this specific doctor
-      const docTokens = tokens.filter(t => matchDoctorId(t.doctorId, doc));
+      const docTokens = tokens.filter(t => matchDoctorId(t.doctorId || t.doctor_id, doc));
       const serving = docTokens.find(t => t.status === 'In Progress');
       const nextUp = docTokens.filter(t => t.status === 'Waiting').sort((a, b) => a.tokenNumber - b.tokenNumber);
 

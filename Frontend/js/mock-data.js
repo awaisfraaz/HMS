@@ -81,12 +81,16 @@ const HMS_DB = {
   },
   
   logout: () => {
+    if (window.HMS_SESSION) window.HMS_SESSION.clearSession();
     const db = loadDb();
     db.currentUser = null;
     saveDb(db);
   },
   
   getCurrentUser: () => {
+    if (window.HMS_SESSION && window.HMS_SESSION.getCurrentUser()) {
+      return window.HMS_SESSION.getCurrentUser();
+    }
     const db = loadDb();
     return db.currentUser;
   },

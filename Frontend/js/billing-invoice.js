@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   // Authentication Guard
-  const currentUser = HMS_DB.getCurrentUser();
+  const currentUser = HMS_SESSION.getCurrentUser();
   if (!currentUser || (currentUser.role !== 'Receptionist' && currentUser.role !== 'Hospital Admin')) {
     window.location.href = 'login-onboarding.html';
     return;
@@ -368,6 +368,19 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       console.error("Error loading patients for billing dropdown:", err);
     }
+  }
+
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await hmsFetch(`${HMS_CONFIG.API_BASE_URL}api/v1/user/logout`, { method: 'POST' });
+      } catch (e) {
+        console.error("Logout API error:", e);
+      }
+      HMS_SESSION.clearSession();
+      window.location.href = 'login-onboarding.html';
+    });
   }
 
   // Initialize page defaults
